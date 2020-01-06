@@ -21,6 +21,7 @@
 //! average.
 // use crate::point_traits::PointN;
 
+/// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Coord {
     x: f64,
