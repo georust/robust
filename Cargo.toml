@@ -1,7 +1,11 @@
 [package]
 name = "robust"
 version = "0.1.0"
-authors = ["Corey Farwell <coreyf@rwell.org>"]
+description = "Robust arithmetic utilities"
+authors = [
+    "The Spade Developers",
+    "The GeoRust Developers",
+]
 edition = "2018"
 license = "MIT/Apache-2.0"
 

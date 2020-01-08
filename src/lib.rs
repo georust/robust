@@ -1,5 +1,5 @@
 // Copyright 2017 The Spade Developers.
-// Copyright 2020 The GeoRust Developers.
+// Copyright 2020 The GeoRust Project Developers.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
