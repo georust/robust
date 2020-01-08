@@ -1,14 +1,16 @@
 [package]
 name = "robust"
-version = "0.1.0"
-description = "Robust arithmetic utilities"
+version = "0.1.1"
+description = "Robust predicates for computational geometry"
 authors = [
     "The Spade Developers",
     "The GeoRust Developers",
 ]
+homepage = "https://github.com/georust/robust"
 edition = "2018"
 license = "MIT/Apache-2.0"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+readme = "README.md"
+keywords = ["robustness", "stability"]
+categories = ["algorithms", "graphics", "science"]
 
 [dependencies]
