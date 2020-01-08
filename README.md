@@ -2,6 +2,8 @@
 
 [Robust](https://observablehq.com/@mourner/non-robust-arithmetic-as-art) predicates for computational geometry.
 
+[API Documentation](https://docs.rs/geo)
+
 ## License
 
 Licensed under either of
