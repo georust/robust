@@ -24,8 +24,8 @@
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Coord {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 // These values are precomputed from the "exactinit" method of the c-source code. They should? be
