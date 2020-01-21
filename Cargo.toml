@@ -1,6 +1,6 @@
 [package]
 name = "robust"
-version = "0.1.1"
+version = "0.1.2"
 description = "Robust predicates for computational geometry"
 authors = [
     "The Spade Developers",
