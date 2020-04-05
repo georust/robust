@@ -40,7 +40,11 @@ const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
 
-pub fn orient2d(pa: Coord, pb: Coord, pc: Coord) -> f64 {
+pub fn orient2d<T: Into<Coord>>(pa: T, pb: T, pc: T) -> f64 {
+    let pa = pa.into();
+    let pb = pb.into();
+    let pc = pc.into();
+
     let detleft = (pa.x - pc.x) * (pb.y - pc.y);
     let detright = (pa.y - pc.y) * (pb.x - pc.x);
     let det = detleft - detright;
@@ -127,7 +131,12 @@ fn orient2dadapt(pa: Coord, pb: Coord, pc: Coord, detsum: f64) -> f64 {
     D[dlength - 1]
 }
 
-pub fn incircle(pa: Coord, pb: Coord, pc: Coord, pd: Coord) -> f64 {
+pub fn incircle<T: Into<Coord>>(pa: T, pb: T, pc: T, pd: T) -> f64 {
+    let pa = pa.into();
+    let pb = pb.into();
+    let pc = pc.into();
+    let pd = pd.into();
+
     let adx = pa.x - pd.x;
     let bdx = pb.x - pd.x;
     let cdx = pc.x - pd.x;
