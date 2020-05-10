@@ -87,21 +87,7 @@ pub fn orient2d<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
     }
 }
 
-fn orient2dadapt<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, detsum: T) -> f64 {
-    let pa = Coord {
-        x: pa.x.to_f64().unwrap(),
-        y: pa.y.to_f64().unwrap(),
-    };
-    let pb = Coord {
-        x: pb.x.to_f64().unwrap(),
-        y: pb.y.to_f64().unwrap(),
-    };
-    let pc = Coord {
-        x: pc.x.to_f64().unwrap(),
-        y: pc.y.to_f64().unwrap(),
-    };
-    let detsum = detsum.to_f64().unwrap();
-
+fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) -> f64 {
     let acx = pa.x - pc.x;
     let bcx = pb.x - pc.x;
     let acy = pa.y - pc.y;
@@ -209,31 +195,13 @@ pub fn incircle<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>
     incircleadapt(pa, pb, pc, pd, permanent)
 }
 
-fn incircleadapt<T: Float>(
-    pa: Coord<T>,
-    pb: Coord<T>,
-    pc: Coord<T>,
-    pd: Coord<T>,
-    permanent: T,
+fn incircleadapt(
+    pa: Coord<f64>,
+    pb: Coord<f64>,
+    pc: Coord<f64>,
+    pd: Coord<f64>,
+    permanent: f64,
 ) -> f64 {
-    let pa = Coord {
-        x: pa.x.to_f64().unwrap(),
-        y: pa.y.to_f64().unwrap(),
-    };
-    let pb = Coord {
-        x: pb.x.to_f64().unwrap(),
-        y: pb.y.to_f64().unwrap(),
-    };
-    let pc = Coord {
-        x: pc.x.to_f64().unwrap(),
-        y: pc.y.to_f64().unwrap(),
-    };
-    let pd = Coord {
-        x: pd.x.to_f64().unwrap(),
-        y: pd.y.to_f64().unwrap(),
-    };
-    let permanent = permanent.to_f64().unwrap();
-
     let mut temp8 = [0f64; 8];
     let mut temp16a = [0f64; 16];
     let mut temp16b = [0f64; 16];
