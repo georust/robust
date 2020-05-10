@@ -10,22 +10,28 @@
 #![allow(non_snake_case)]
 
 //! This is a direct transcript of the sourcecode and algorithms provided by
-//! Jonathan Richard Shewchuk (https://www.cs.cmu.edu/~quake/robust.html)
+//! Jonathan Richard Shewchuk ([https://www.cs.cmu.edu/~quake/robust.html](https://www.cs.cmu.edu/~quake/robust.html))
 //! See the paper and the source code for more information.
 //!
 //! The module offers adaptive and precise calculations for orientation queries
-//! (on which side of a line lies a point?) and in circle queries
+//! (on which side of a line does a point lie?) and in-circle queries
 //! (is a given point contained in the circumference of a triangle?)
 //! The "adaptive" nature will increase performance only if a simpler calculation
-//! cannot be guaranteed to be accurate enough, yielding a higher performance on
+//! cannot be guaranteed to be accurate enough, yielding higher performance on
 //! average.
-// use crate::point_traits::PointN;
+//!
+//! The public API will accept `f32` input points for predicate checking, but these are converted to `f64` values for internal use.
+//! This has no effect on precision, as the [IEEE-754 standard](https://drive.google.com/file/d/0B3O3Ys97VjtxYXBCY08wanNoZ1U/view) (section 5.3)
+//! guarantees that conversion from `f32` to `f64` must be exact.
+//! Note that this crate **only** supports types that can never panic when calling unwrapping `to_f64()`.
+
+use num_traits::Float;
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Coord {
-    pub x: f64,
-    pub y: f64,
+pub struct Coord<T: Float> {
+    pub x: T,
+    pub y: T,
 }
 
 // These values are precomputed from the "exactinit" method of the c-source code. They should? be
@@ -40,7 +46,20 @@ const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
 
-pub fn orient2d(pa: Coord, pb: Coord, pc: Coord) -> f64 {
+pub fn orient2d<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
+    let pa = Coord {
+        x: pa.x.to_f64().unwrap(),
+        y: pa.y.to_f64().unwrap(),
+    };
+    let pb = Coord {
+        x: pb.x.to_f64().unwrap(),
+        y: pb.y.to_f64().unwrap(),
+    };
+    let pc = Coord {
+        x: pc.x.to_f64().unwrap(),
+        y: pc.y.to_f64().unwrap(),
+    };
+
     let detleft = (pa.x - pc.x) * (pb.y - pc.y);
     let detright = (pa.y - pc.y) * (pb.x - pc.x);
     let det = detleft - detright;
@@ -68,7 +87,21 @@ pub fn orient2d(pa: Coord, pb: Coord, pc: Coord) -> f64 {
     }
 }
 
-fn orient2dadapt(pa: Coord, pb: Coord, pc: Coord, detsum: f64) -> f64 {
+fn orient2dadapt<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, detsum: T) -> f64 {
+    let pa = Coord {
+        x: pa.x.to_f64().unwrap(),
+        y: pa.y.to_f64().unwrap(),
+    };
+    let pb = Coord {
+        x: pb.x.to_f64().unwrap(),
+        y: pb.y.to_f64().unwrap(),
+    };
+    let pc = Coord {
+        x: pc.x.to_f64().unwrap(),
+        y: pc.y.to_f64().unwrap(),
+    };
+    let detsum = detsum.to_f64().unwrap();
+
     let acx = pa.x - pc.x;
     let bcx = pb.x - pc.x;
     let acy = pa.y - pc.y;
@@ -127,7 +160,24 @@ fn orient2dadapt(pa: Coord, pb: Coord, pc: Coord, detsum: f64) -> f64 {
     D[dlength - 1]
 }
 
-pub fn incircle(pa: Coord, pb: Coord, pc: Coord, pd: Coord) -> f64 {
+pub fn incircle<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>) -> f64 {
+    let pa = Coord {
+        x: pa.x.to_f64().unwrap(),
+        y: pa.y.to_f64().unwrap(),
+    };
+    let pb = Coord {
+        x: pb.x.to_f64().unwrap(),
+        y: pb.y.to_f64().unwrap(),
+    };
+    let pc = Coord {
+        x: pc.x.to_f64().unwrap(),
+        y: pc.y.to_f64().unwrap(),
+    };
+    let pd = Coord {
+        x: pd.x.to_f64().unwrap(),
+        y: pd.y.to_f64().unwrap(),
+    };
+
     let adx = pa.x - pd.x;
     let bdx = pb.x - pd.x;
     let cdx = pc.x - pd.x;
@@ -159,7 +209,31 @@ pub fn incircle(pa: Coord, pb: Coord, pc: Coord, pd: Coord) -> f64 {
     incircleadapt(pa, pb, pc, pd, permanent)
 }
 
-fn incircleadapt(pa: Coord, pb: Coord, pc: Coord, pd: Coord, permanent: f64) -> f64 {
+fn incircleadapt<T: Float>(
+    pa: Coord<T>,
+    pb: Coord<T>,
+    pc: Coord<T>,
+    pd: Coord<T>,
+    permanent: T,
+) -> f64 {
+    let pa = Coord {
+        x: pa.x.to_f64().unwrap(),
+        y: pa.y.to_f64().unwrap(),
+    };
+    let pb = Coord {
+        x: pb.x.to_f64().unwrap(),
+        y: pb.y.to_f64().unwrap(),
+    };
+    let pc = Coord {
+        x: pc.x.to_f64().unwrap(),
+        y: pc.y.to_f64().unwrap(),
+    };
+    let pd = Coord {
+        x: pd.x.to_f64().unwrap(),
+        y: pd.y.to_f64().unwrap(),
+    };
+    let permanent = permanent.to_f64().unwrap();
+
     let mut temp8 = [0f64; 8];
     let mut temp16a = [0f64; 16];
     let mut temp16b = [0f64; 16];
@@ -1110,16 +1184,28 @@ fn two_two_sum(a1: f64, a0: f64, b1: f64, b0: f64) -> (f64, f64, f64, f64) {
 
 #[cfg(test)]
 mod test {
-    use super::{Coord, incircle, orient2d};
+    use super::{incircle, orient2d, Coord};
 
     #[test]
     fn test_orient2d() {
         let from = Coord { x: -1f64, y: -1.0 };
         let to = Coord { x: 1f64, y: 1.0 };
-        let p1 = Coord { x: ::std::f64::MIN_POSITIVE, y: ::std::f64::MIN_POSITIVE };
-        let p2 = Coord { x: -::std::f64::MIN_POSITIVE, y: -::std::f64::MIN_POSITIVE };
-        let p3 = Coord { x: -::std::f64::MIN_POSITIVE, y: ::std::f64::MIN_POSITIVE };
-        let p4 = Coord { x: ::std::f64::MIN_POSITIVE, y: -::std::f64::MIN_POSITIVE };
+        let p1 = Coord {
+            x: ::std::f64::MIN_POSITIVE,
+            y: ::std::f64::MIN_POSITIVE,
+        };
+        let p2 = Coord {
+            x: -::std::f64::MIN_POSITIVE,
+            y: -::std::f64::MIN_POSITIVE,
+        };
+        let p3 = Coord {
+            x: -::std::f64::MIN_POSITIVE,
+            y: ::std::f64::MIN_POSITIVE,
+        };
+        let p4 = Coord {
+            x: ::std::f64::MIN_POSITIVE,
+            y: -::std::f64::MIN_POSITIVE,
+        };
 
         for &(p, sign) in &[(p1, 0.0), (p2, 0.0), (p3, 1.0), (p4, -1.0)] {
             let det = orient2d(from, to, p);
@@ -1131,8 +1217,14 @@ mod test {
     fn test_incircle() {
         let from = Coord { x: -1f64, y: -1.0 };
         let to = Coord { x: 1f64, y: 1.0 };
-        let p_left = Coord { x: -::std::f64::MIN_POSITIVE, y: ::std::f64::MIN_POSITIVE };
-        let p_right = Coord { x: ::std::f64::MIN_POSITIVE, y: -::std::f64::MIN_POSITIVE };
+        let p_left = Coord {
+            x: -::std::f64::MIN_POSITIVE,
+            y: ::std::f64::MIN_POSITIVE,
+        };
+        let p_right = Coord {
+            x: ::std::f64::MIN_POSITIVE,
+            y: -::std::f64::MIN_POSITIVE,
+        };
         let p_query = Coord { x: 2.0, y: 2.0 };
 
         assert!(incircle(from, p_left, to, p_query) > 0.0);
@@ -1141,10 +1233,22 @@ mod test {
 
     #[test]
     fn test_issue48_a() {
-        let pa = Coord { x: 2.1045541600524288e-15, y: -1.0000000000000016 };
-        let pb = Coord { x: 1.000000000000005, y: -3.350874324301223e-16 };
-        let pc = Coord { x: 7.553997323229233e-15, y: 0.9999999999999958 };
-        let pd = Coord { x: -0.9999999999999922, y: -7.073397829693697e-15 };
+        let pa = Coord {
+            x: 2.1045541600524288e-15,
+            y: -1.0000000000000016,
+        };
+        let pb = Coord {
+            x: 1.000000000000005,
+            y: -3.350874324301223e-16,
+        };
+        let pc = Coord {
+            x: 7.553997323229233e-15,
+            y: 0.9999999999999958,
+        };
+        let pd = Coord {
+            x: -0.9999999999999922,
+            y: -7.073397829693697e-15,
+        };
         // the (incorrect) result from the previous version of exactpred.rs
         assert!(incircle(pa, pb, pc, pd) != 1.9217716744382023e-16f64);
         // the result predicates.c gives
@@ -1153,14 +1257,25 @@ mod test {
 
     #[test]
     fn test_issue48_b() {
-        let pa = Coord { x: 9.128561612013288e-15, y: -1.0000000000000029 };
-        let pb = Coord { x: 1.0000000000000044, y: -5.451395142523081e-15 };
-        let pc = Coord { x: 3.851214418148064e-15, y: 0.9999999999999961 };
-        let pd = Coord { x: -0.9999999999999946, y: -6.6797960341085084e-15 };
+        let pa = Coord {
+            x: 9.128561612013288e-15,
+            y: -1.0000000000000029,
+        };
+        let pb = Coord {
+            x: 1.0000000000000044,
+            y: -5.451395142523081e-15,
+        };
+        let pc = Coord {
+            x: 3.851214418148064e-15,
+            y: 0.9999999999999961,
+        };
+        let pd = Coord {
+            x: -0.9999999999999946,
+            y: -6.6797960341085084e-15,
+        };
         // the (incorrect) result from the previous version of exactpred.rs
         assert!(incircle(pa, pb, pc, pd) != -1.1074731814540733e-16);
         // the result predicates.c gives
         assert!(incircle(pa, pb, pc, pd) == 7.226864249343135e-30);
     }
 }
-

@@ -14,3 +14,4 @@ keywords = ["robustness", "stability"]
 categories = ["algorithms", "graphics", "science"]
 
 [dependencies]
+num-traits = "0.2.11"
