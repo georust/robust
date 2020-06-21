@@ -25,7 +25,6 @@
 //! guarantees that conversion from `f32` to `f64` must be exact.
 //! Note that this crate **only** supports types that can never panic when calling unwrapping `to_f64()`.
 
-
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Coord<T: Into<f64>> {
@@ -46,7 +45,6 @@ const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
 
 pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
-    
     let pa = Coord {
         x: pa.x.into(),
         y: pa.y.into(),
@@ -310,29 +308,32 @@ fn incircleadapt(
 
     let mut fin2 = [0f64; 1152];
 
-    let mut aa = [0f64; 4];
-    if bdxtail != 0.0 || bdytail != 0.0 || cdxtail != 0.0 || cdytail != 0.0 {
+    let aa = if bdxtail != 0.0 || bdytail != 0.0 || cdxtail != 0.0 || cdytail != 0.0 {
         let (adxadx1, adxadx0) = square(adx);
         let (adyady1, adyady0) = square(ady);
         let (aa3, aa2, aa1, aa0) = two_two_sum(adxadx1, adxadx0, adyady1, adyady0);
-        aa = [aa0, aa1, aa2, aa3];
-    }
+        [aa0, aa1, aa2, aa3]
+    } else {
+        [0f64; 4]
+    };
 
-    let mut bb = [0f64; 4];
-    if cdxtail != 0.0 || cdytail != 0.0 || adxtail != 0.0 || adytail != 0.0 {
+    let bb = if cdxtail != 0.0 || cdytail != 0.0 || adxtail != 0.0 || adytail != 0.0 {
         let (bdxbdx1, bdxbdx0) = square(bdx);
         let (bdybdy1, bdybdy0) = square(bdy);
         let (bb3, bb2, bb1, bb0) = two_two_sum(bdxbdx1, bdxbdx0, bdybdy1, bdybdy0);
-        bb = [bb0, bb1, bb2, bb3];
-    }
+        [bb0, bb1, bb2, bb3]
+    } else {
+        [0f64; 4]
+    };
 
-    let mut cc = [0f64; 4];
-    if adxtail != 0.0 || adytail != 0.0 || bdxtail != 0.0 || bdytail != 0.0 {
+    let cc = if adxtail != 0.0 || adytail != 0.0 || bdxtail != 0.0 || bdytail != 0.0 {
         let (cdxcdx1, cdxcdx0) = square(cdx);
         let (cdycdy1, cdycdy0) = square(cdy);
         let (cc3, cc2, cc1, cc0) = two_two_sum(cdxcdx1, cdxcdx0, cdycdy1, cdycdy0);
-        cc = [cc0, cc1, cc2, cc3];
-    }
+        [cc0, cc1, cc2, cc3]
+    } else {
+        [0f64; 4]
+    };
 
     let mut axtbclen = 9;
     let mut axtbc = [0f64; 8];
