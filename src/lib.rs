@@ -25,11 +25,10 @@
 //! guarantees that conversion from `f32` to `f64` must be exact.
 //! Note that this crate **only** supports types that can never panic when calling unwrapping `to_f64()`.
 
-use num_traits::Float;
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Coord<T: Float> {
+pub struct Coord<T: Into<f64>> {
     pub x: T,
     pub y: T,
 }
@@ -46,18 +45,19 @@ const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
 
-pub fn orient2d<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
+pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
+    
     let pa = Coord {
-        x: pa.x.to_f64().unwrap(),
-        y: pa.y.to_f64().unwrap(),
+        x: pa.x.into(),
+        y: pa.y.into(),
     };
     let pb = Coord {
-        x: pb.x.to_f64().unwrap(),
-        y: pb.y.to_f64().unwrap(),
+        x: pb.x.into(),
+        y: pb.y.into(),
     };
     let pc = Coord {
-        x: pc.x.to_f64().unwrap(),
-        y: pc.y.to_f64().unwrap(),
+        x: pc.x.into(),
+        y: pc.y.into(),
     };
 
     let detleft = (pa.x - pc.x) * (pb.y - pc.y);
@@ -146,22 +146,22 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
     D[dlength - 1]
 }
 
-pub fn incircle<T: Float>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>) -> f64 {
+pub fn incircle<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>) -> f64 {
     let pa = Coord {
-        x: pa.x.to_f64().unwrap(),
-        y: pa.y.to_f64().unwrap(),
+        x: pa.x.into(),
+        y: pa.y.into(),
     };
     let pb = Coord {
-        x: pb.x.to_f64().unwrap(),
-        y: pb.y.to_f64().unwrap(),
+        x: pb.x.into(),
+        y: pb.y.into(),
     };
     let pc = Coord {
-        x: pc.x.to_f64().unwrap(),
-        y: pc.y.to_f64().unwrap(),
+        x: pc.x.into(),
+        y: pc.y.into(),
     };
     let pd = Coord {
-        x: pd.x.to_f64().unwrap(),
-        y: pd.y.to_f64().unwrap(),
+        x: pd.x.into(),
+        y: pd.y.into(),
     };
 
     let adx = pa.x - pd.x;
