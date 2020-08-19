@@ -45,6 +45,10 @@ const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
 
+/// Returns a positive value if the coordinates `pa`, `pb`, and `pc` occur in counterclockwise order
+/// (pc lies to the **left** of the directed line defined by coordinates pa and pb).  
+/// Returns a negative value if they occur in clockwise order (`pc` lies to the **right** of the directed line `pa, pb`).  
+/// Returns `0` if they are **collinear**.  
 pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
     let pa = Coord {
         x: pa.x.into(),
@@ -145,6 +149,9 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
     D[dlength - 1]
 }
 
+/// Returns a positive value if the coordinate `pd` lies **outside** the circle passing through `pa`, `pb`, and `pc`.  
+/// Returns a negative value if it lies **inside** the circle.  
+/// Returns `0` if the four points are **cocircular**.
 pub fn incircle<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>) -> f64 {
     let pa = Coord {
         x: pa.x.into(),
