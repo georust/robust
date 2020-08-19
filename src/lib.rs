@@ -1,3 +1,4 @@
+#![doc(html_logo_url = "https://raw.githubusercontent.com/georust/meta/master/logo/logo.png")]
 // Copyright 2017 The Spade Developers.
 // Copyright 2020 The GeoRust Project Developers.
 //
@@ -20,10 +21,10 @@
 //! cannot be guaranteed to be accurate enough, yielding higher performance on
 //! average.
 //!
-//! The public API will accept `f32` input points for predicate checking, but these are converted to `f64` values for internal use.
+//! The public API will accept both `f32` and `f64` input points for predicate checking, with input being converted to
+//! `f64` values for internal use.
 //! This has no effect on precision, as the [IEEE-754 standard](https://drive.google.com/file/d/0B3O3Ys97VjtxYXBCY08wanNoZ1U/view) (section 5.3)
 //! guarantees that conversion from `f32` to `f64` must be exact.
-//! Note that this crate **only** supports types that can never panic when calling unwrapping `to_f64()`.
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
