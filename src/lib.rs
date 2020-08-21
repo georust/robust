@@ -27,14 +27,14 @@
 //!
 
 extern crate num_traits;
-use num_traits::{Num, NumCast, Signed};
+use num_traits::Float;
 
-pub trait CoordinateType: Num + NumCast + Signed + Copy + PartialOrd {
+pub trait CoordinateType: Float {
     fn two() -> Self {
         Self::one() + Self::one()
     }
 }
-impl<T: Num + NumCast + Signed + Copy + PartialOrd> CoordinateType for T {}
+impl<T: Float> CoordinateType for T {}
 
 /// A two dimensional coordinate.
 pub trait Coord<T: CoordinateType> {
@@ -78,7 +78,6 @@ pub fn orient2d<T: CoordinateType, C: Coord<T>>(pa: C, pb: C, pc: C) -> T {
     } else {
         return det;
     };
-    // This doesn't seem correct for Int types. Should T be Float only?
     let errbound = T::from(CCWERRBOUND_A).unwrap() * detsum;
     if det >= errbound || -det >= errbound {
         det
