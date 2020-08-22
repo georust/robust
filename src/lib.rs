@@ -27,6 +27,10 @@
 //! `f64` values for internal use.
 //! This has no effect on precision, as the [IEEE-754 standard](https://drive.google.com/file/d/0B3O3Ys97VjtxYXBCY08wanNoZ1U/view) (section 5.3)
 //! guarantees that conversion from `f32` to `f64` must be exact.
+//!
+//! # Features
+//!
+//! - `no_std`: Build without the Rust standard library
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
