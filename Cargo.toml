@@ -12,3 +12,9 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 keywords = ["robustness", "stability"]
 categories = ["algorithms", "graphics", "science"]
+
+[dependencies]
+ieee754 = { version = "0.2", optional = true } # https://github.com/rust-lang/rust/issues/50145
+
+[features]
+no_std = ["ieee754"]
