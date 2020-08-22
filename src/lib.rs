@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "no_std", no_std)]
+
 #![doc(html_logo_url = "https://raw.githubusercontent.com/georust/meta/master/logo/logo.png")]
 // Copyright 2017 The Spade Developers.
 // Copyright 2020 The GeoRust Project Developers.
@@ -25,6 +27,10 @@
 //! `f64` values for internal use.
 //! This has no effect on precision, as the [IEEE-754 standard](https://drive.google.com/file/d/0B3O3Ys97VjtxYXBCY08wanNoZ1U/view) (section 5.3)
 //! guarantees that conversion from `f32` to `f64` must be exact.
+//!
+//! # Features
+//!
+//! - `no_std`: Build without the Rust standard library
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -117,7 +123,7 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
         return det;
     }
 
-    let errbound = CCWERRBOUND_C * detsum + RESULTERRBOUND * det.abs();
+    let errbound = CCWERRBOUND_C * detsum + RESULTERRBOUND * abs(det);
     det += (acx * bcytail + bcy * acxtail) - (acy * bcxtail + bcx * acytail);
 
     if det >= errbound || -det >= errbound {
@@ -191,9 +197,9 @@ pub fn incircle<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coor
 
     let det = alift * (bdxcdy - cdxbdy) + blift * (cdxady - adxcdy) + clift * (adxbdy - bdxady);
 
-    let permanent = (bdxcdy.abs() + cdxbdy.abs()) * alift
-        + (cdxady.abs() + adxcdy.abs()) * blift
-        + (adxbdy.abs() + bdxady.abs()) * clift;
+    let permanent = (abs(bdxcdy) + abs(cdxbdy)) * alift
+        + (abs(cdxady) + abs(adxcdy)) * blift
+        + (abs(adxbdy) + abs(bdxady)) * clift;
     let errbound = ICCERRBOUND_A * permanent;
     if det > errbound || -det > errbound {
         return det;
@@ -299,7 +305,7 @@ fn incircleadapt(
         return det;
     }
 
-    let errbound = ICCERRBOUND_C * permanent + RESULTERRBOUND * det.abs();
+    let errbound = ICCERRBOUND_C * permanent + RESULTERRBOUND * abs(det);
     det += ((adx * adx + ady * ady)
         * ((bdx * cdytail + cdy * bdxtail) - (bdy * cdxtail + cdx * bdytail))
         + 2.0 * (adx * adxtail + ady * adytail) * (bdx * cdy - bdy * cdx))
@@ -374,7 +380,7 @@ fn incircleadapt(
         );
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2)
+        ::core::mem::swap(&mut fin1, &mut fin2)
     }
 
     let mut aytbclen = 9;
@@ -404,7 +410,7 @@ fn incircleadapt(
         );
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2)
+        ::core::mem::swap(&mut fin1, &mut fin2)
     }
 
     let mut bxtcalen = 9;
@@ -433,7 +439,7 @@ fn incircleadapt(
         );
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2)
+        ::core::mem::swap(&mut fin1, &mut fin2)
     }
 
     let mut bytcalen = 9;
@@ -463,7 +469,7 @@ fn incircleadapt(
 
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2)
+        ::core::mem::swap(&mut fin1, &mut fin2)
     }
 
     let mut cxtab = [0f64; 8];
@@ -492,7 +498,7 @@ fn incircleadapt(
         );
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2);
+        ::core::mem::swap(&mut fin1, &mut fin2);
     }
 
     let mut cytab = [0f64; 8];
@@ -521,7 +527,7 @@ fn incircleadapt(
         );
         finlength =
             fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-        ::std::mem::swap(&mut fin1, &mut fin2);
+        ::core::mem::swap(&mut fin1, &mut fin2);
     }
 
     if adxtail != 0.0 || adytail != 0.0 {
@@ -566,7 +572,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             if bdytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&cc, adxtail, &mut temp8);
@@ -577,7 +583,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
             if cdytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&bb, -adxtail, &mut temp8);
@@ -588,7 +594,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
 
             let temp32alen = scale_expansion_zeroelim(&axtbct[..axtbctlen], adxtail, &mut temp32a);
@@ -610,7 +616,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
 
         if adytail != 0.0 {
@@ -626,7 +632,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             let temp32alen = scale_expansion_zeroelim(&aytbct[..aytbctlen], adytail, &mut temp32a);
             let mut aytbctt = [0f64; 8];
@@ -647,7 +653,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
     }
 
@@ -695,7 +701,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             if cdytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&aa, bdxtail, &mut temp8);
@@ -706,7 +712,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
             if adytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&cc, -bdxtail, &mut temp8);
@@ -717,7 +723,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
 
             let temp32alen = scale_expansion_zeroelim(&bxtcat[..bxtcatlen], bdxtail, &mut temp32a);
@@ -739,7 +745,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
         if bdytail != 0.0 {
             let temp16alen = scale_expansion_zeroelim(&bytca[..bytcalen], bdytail, &mut temp16a);
@@ -754,7 +760,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             let temp32alen = scale_expansion_zeroelim(&bytcat[..bytcatlen], bdytail, &mut temp32a);
             let mut bytcatt = [0f64; 8];
@@ -775,7 +781,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
     }
 
@@ -823,7 +829,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             if adytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&bb, cdxtail, &mut temp8);
@@ -834,7 +840,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
             if bdytail != 0.0 {
                 let temp8len = scale_expansion_zeroelim(&aa, -cdxtail, &mut temp8);
@@ -845,7 +851,7 @@ fn incircleadapt(
                     &temp16a[..temp16alen],
                     &mut fin2,
                 );
-                ::std::mem::swap(&mut fin1, &mut fin2);
+                ::core::mem::swap(&mut fin1, &mut fin2);
             }
 
             let temp32alen = scale_expansion_zeroelim(&cxtabt[..cxtabtlen], cdxtail, &mut temp32a);
@@ -867,7 +873,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
         if cdytail != 0.0 {
             let temp16alen = scale_expansion_zeroelim(&cytab[..cytablen], cdytail, &mut temp16a);
@@ -882,7 +888,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp48[..temp48len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
 
             let temp32alen = scale_expansion_zeroelim(&cytabt[..cytabtlen], cdytail, &mut temp32a);
             let mut cytabtt = [0f64; 8];
@@ -903,7 +909,7 @@ fn incircleadapt(
             );
             finlength =
                 fast_expansion_sum_zeroelim(&fin1[..finlength], &temp64[..temp64len], &mut fin2);
-            ::std::mem::swap(&mut fin1, &mut fin2);
+            ::core::mem::swap(&mut fin1, &mut fin2);
         }
     }
     fin1[finlength - 1]
@@ -1159,6 +1165,21 @@ fn two_two_sum(a1: f64, a0: f64, b1: f64, b0: f64) -> (f64, f64, f64, f64) {
     (x3, x2, x1, x0)
 }
 
+// f64::abs is not yet available in libcore, so we’ll need to use a separate
+// crate for this functionality.
+//
+// https://github.com/rust-lang/rust/issues/50145
+#[cfg(feature = "no_std")]
+#[inline]
+fn abs(x: f64) -> f64 {
+    ieee754::Ieee754::abs(x)
+}
+#[cfg(not(feature = "no_std"))]
+#[inline]
+fn abs(x: f64) -> f64 {
+    x.abs()
+}
+
 #[cfg(test)]
 mod test {
     use super::{incircle, orient2d, Coord};
@@ -1168,20 +1189,20 @@ mod test {
         let from = Coord { x: -1f64, y: -1.0 };
         let to = Coord { x: 1f64, y: 1.0 };
         let p1 = Coord {
-            x: ::std::f64::MIN_POSITIVE,
-            y: ::std::f64::MIN_POSITIVE,
+            x: ::core::f64::MIN_POSITIVE,
+            y: ::core::f64::MIN_POSITIVE,
         };
         let p2 = Coord {
-            x: -::std::f64::MIN_POSITIVE,
-            y: -::std::f64::MIN_POSITIVE,
+            x: -::core::f64::MIN_POSITIVE,
+            y: -::core::f64::MIN_POSITIVE,
         };
         let p3 = Coord {
-            x: -::std::f64::MIN_POSITIVE,
-            y: ::std::f64::MIN_POSITIVE,
+            x: -::core::f64::MIN_POSITIVE,
+            y: ::core::f64::MIN_POSITIVE,
         };
         let p4 = Coord {
-            x: ::std::f64::MIN_POSITIVE,
-            y: -::std::f64::MIN_POSITIVE,
+            x: ::core::f64::MIN_POSITIVE,
+            y: -::core::f64::MIN_POSITIVE,
         };
 
         for &(p, sign) in &[(p1, 0.0), (p2, 0.0), (p3, 1.0), (p4, -1.0)] {
@@ -1195,12 +1216,12 @@ mod test {
         let from = Coord { x: -1f64, y: -1.0 };
         let to = Coord { x: 1f64, y: 1.0 };
         let p_left = Coord {
-            x: -::std::f64::MIN_POSITIVE,
-            y: ::std::f64::MIN_POSITIVE,
+            x: -::core::f64::MIN_POSITIVE,
+            y: ::core::f64::MIN_POSITIVE,
         };
         let p_right = Coord {
-            x: ::std::f64::MIN_POSITIVE,
-            y: -::std::f64::MIN_POSITIVE,
+            x: ::core::f64::MIN_POSITIVE,
+            y: -::core::f64::MIN_POSITIVE,
         };
         let p_query = Coord { x: 2.0, y: 2.0 };
 
