@@ -6,7 +6,7 @@
 
 ## Visualize
 
-Below are visualizations comparing naive and robust predicates implementations. To learn how these images were generated and how to interpret them, see [`examples/predicate-map/README.md`](examples/predicate-map/README.md).
+Below are visualizations comparing naive and robust predicate implementations. To learn how these images were generated and how to interpret them, see [`examples/predicate-map/README.md`](examples/predicate-map/README.md).
 
 |            | Naive                   | Robust                   |
 |------------|-------------------------|--------------------------|
