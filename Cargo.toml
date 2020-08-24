@@ -18,3 +18,7 @@ ieee754 = { version = "0.2", optional = true } # https://github.com/rust-lang/ru
 
 [features]
 no_std = ["ieee754"]
+
+[dev-dependencies]
+png = "0.16.7"
+float_extras = "0.1.6"
