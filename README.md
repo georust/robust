@@ -4,9 +4,9 @@
 
 [API Documentation](https://docs.rs/robust)
 
-## Visualize
+## Visuals
 
-Below are visualizations comparing naive and robust predicate implementations. To learn how these images were generated and how to interpret them, see [`examples/predicate-map/README.md`](examples/predicate-map/README.md).
+Below are visualizations comparing naive and robust predicate implementations. To learn how these images were generated and how to interpret them, see [`examples/predicate-map/`](examples/predicate-map/).
 
 |            | Naive                   | Robust                   |
 |------------|-------------------------|--------------------------|
