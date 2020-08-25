@@ -4,6 +4,20 @@
 
 [API Documentation](https://docs.rs/robust)
 
+## Visualize
+
+Below are visualizations comparing naive and robust predicate implementations. To learn how these images were generated and how to interpret them, see [`examples/predicate-map/README.md`](examples/predicate-map/README.md).
+
+|            | Naive                   | Robust                   |
+|------------|-------------------------|--------------------------|
+| `incircle` | ![][incircle-naive-png] | ![][incircle-robust-png] |
+| `orient2d` | ![][orient2d-naive-png] | ![][orient2d-robust-png] |
+
+[incircle-naive-png]: https://georust.github.io/assets/incircle-naive/v1.png
+[incircle-robust-png]: https://georust.github.io/assets/incircle-robust/v1.png
+[orient2d-naive-png]: https://georust.github.io/assets/orient2d-naive/v1.png
+[orient2d-robust-png]: https://georust.github.io/assets/orient2d-robust/v1.png
+
 ## License
 
 Licensed under either of
