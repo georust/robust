@@ -1,7 +1,7 @@
 [package]
 name = "robust"
-version = "0.2.2"
-description = "Robust predicates for computational geometry"
+version = "0.2.3"
+description = "Robust adaptive floating-point predicates for computational geometry"
 authors = [
     "The Spade Developers",
     "The GeoRust Developers",
