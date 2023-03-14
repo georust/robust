@@ -53,9 +53,9 @@ const RESULTERRBOUND: f64 = (3.0 + 8.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_A: f64 = (3.0 + 16.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_B: f64 = (2.0 + 12.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_C: f64 = (9.0 + 64.0 * EPSILON) * EPSILON * EPSILON;
-const O3DERRBOUND_A: f64 = (7.0 + 56.0 * epsilon) * epsilon;
-const O3DERRBOUND_B = (3.0 + 28.0 * epsilon) * epsilon;
-const O3DERRBOUND_C = (26.0 + 288.0 * epsilon) * epsilon * epsilon;
+const O3DERRBOUND_A: f64 = (7.0 + 56.0 * EPSILON) * EPSILON;
+const O3DERRBOUND_B: f64 = (3.0 + 28.0 * EPSILON) * EPSILON;
+const O3DERRBOUND_C: f64 = (26.0 + 288.0 * EPSILON) * EPSILON * EPSILON;
 const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
@@ -274,7 +274,7 @@ fn orient3dadapt(
     let mut det = estimate(finlength, fin1);
     let mut errbound = O3DERRBOUND_B * permanent;
     if ((det >= errbound) || (-det >= errbound)) {
-      return det;
+        return det;
     }
 
     let adxtail = two_diff_tail(pa.x, pd.x, adx);
@@ -286,25 +286,29 @@ fn orient3dadapt(
     let adztail = two_diff_tail(pa.z, pd.z, adz);
     let bdztail = two_diff_tail(pb.z, pd.z, bdz);
     let cdztail = two_diff_tail(pc.z, pd.z, cdz);
-  
-    if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0)
-        && (adytail == 0.0) && (bdytail == 0.0) && (cdytail == 0.0)
-        && (adztail == 0.0) && (bdztail == 0.0) && (cdztail == 0.0)) {
+
+    if ((adxtail == 0.0)
+        && (bdxtail == 0.0)
+        && (cdxtail == 0.0)
+        && (adytail == 0.0)
+        && (bdytail == 0.0)
+        && (cdytail == 0.0)
+        && (adztail == 0.0)
+        && (bdztail == 0.0)
+        && (cdztail == 0.0))
+    {
         return det;
     }
 
     errbound = O3DERRBOUND_C * permanent + resulterrbound * Absolute(det);
-    det += (adz * ((bdx * cdytail + cdy * bdxtail)
-                   - (bdy * cdxtail + cdx * bdytail))
-            + adztail * (bdx * cdy - bdy * cdx))
-         + (bdz * ((cdx * adytail + ady * cdxtail)
-                   - (cdy * adxtail + adx * cdytail))
+    det += (adz * ((bdx * cdytail + cdy * bdxtail) - (bdy * cdxtail + cdx * bdytail))
+        + adztail * (bdx * cdy - bdy * cdx))
+        + (bdz * ((cdx * adytail + ady * cdxtail) - (cdy * adxtail + adx * cdytail))
             + bdztail * (cdx * ady - cdy * adx))
-         + (cdz * ((adx * bdytail + bdy * adxtail)
-                   - (ady * bdxtail + bdx * adytail))
+        + (cdz * ((adx * bdytail + bdy * adxtail) - (ady * bdxtail + bdx * adytail))
             + cdztail * (adx * bdy - ady * bdx));
     if ((det >= errbound) || (-det >= errbound)) {
-      return det;
+        return det;
     }
 
     let finnow = fin1;
@@ -324,253 +328,281 @@ fn orient3dadapt(
     let mut ct_blen: usize;
     if (adxtail == 0.0) {
         if (adytail == 0.0) {
-          at_b[0] = 0.0;
-          at_blen = 1;
-          at_c[0] = 0.0;
-          at_clen = 1;
+            at_b[0] = 0.0;
+            at_blen = 1;
+            at_c[0] = 0.0;
+            at_clen = 1;
         } else {
-          let negate = -adytail;
-          (at_b[1], at_b[0]) = two_product(negate, bdx);
-          at_blen = 2;
-          (at_c[1], at_c[0]) = two_product(adytail, cdx);
-          at_clen = 2;
+            let negate = -adytail;
+            (at_b[1], at_b[0]) = two_product(negate, bdx);
+            at_blen = 2;
+            (at_c[1], at_c[0]) = two_product(adytail, cdx);
+            at_clen = 2;
         }
-      } else {
+    } else {
         if (adytail == 0.0) {
-          (at_b[1], at_b[0]) = two_product(adxtail, bdy);
-          at_blen = 2;
-          let negate = -adxtail;
-          (at_c[1], at_c[0]) = two_product(negate, cdy);
-          at_clen = 2;
+            (at_b[1], at_b[0]) = two_product(adxtail, bdy);
+            at_blen = 2;
+            let negate = -adxtail;
+            (at_c[1], at_c[0]) = two_product(negate, cdy);
+            at_clen = 2;
         } else {
-          (adxt_bdy1, adxt_bdy0) = two_product(adxtail, bdy);
-          (adyt_bdx1, adyt_bdx0) = two_product(adytail, bdx);
-          (at_b[3], at_b[2], at_b[1], at_b[0]) = two_two_diff(adxt_bdy1, adxt_bdy0, adyt_bdx1, adyt_bdx0);
-          at_blen = 4;
-          (adyt_cdx1, adyt_cdx0) = two_product(adytail, cdx);
-          (adxt_cdy1, adxt_cdy0) = two_product(adxtail, cdy);
-          (at_c[3], at_c[2], at_c[1], at_c[0]) = two_two_diff(adyt_cdx1, adyt_cdx0, adxt_cdy1, adxt_cdy0);
-          at_clen = 4;
+            (adxt_bdy1, adxt_bdy0) = two_product(adxtail, bdy);
+            (adyt_bdx1, adyt_bdx0) = two_product(adytail, bdx);
+            (at_b[3], at_b[2], at_b[1], at_b[0]) =
+                two_two_diff(adxt_bdy1, adxt_bdy0, adyt_bdx1, adyt_bdx0);
+            at_blen = 4;
+            (adyt_cdx1, adyt_cdx0) = two_product(adytail, cdx);
+            (adxt_cdy1, adxt_cdy0) = two_product(adxtail, cdy);
+            (at_c[3], at_c[2], at_c[1], at_c[0]) =
+                two_two_diff(adyt_cdx1, adyt_cdx0, adxt_cdy1, adxt_cdy0);
+            at_clen = 4;
         }
-      }
-      if (bdxtail == 0.0) {
+    }
+    if (bdxtail == 0.0) {
         if (bdytail == 0.0) {
-          bt_c[0] = 0.0;
-          bt_clen = 1;
-          bt_a[0] = 0.0;
-          bt_alen = 1;
+            bt_c[0] = 0.0;
+            bt_clen = 1;
+            bt_a[0] = 0.0;
+            bt_alen = 1;
         } else {
-          let negate = -bdytail;
-          (bt_c[1], bt_c[0]) = two_product(negate, cdx);
-          bt_clen = 2;
-          (bt_a[1], bt_a[0]) = two_product(bdytail, adx);
-          bt_alen = 2;
+            let negate = -bdytail;
+            (bt_c[1], bt_c[0]) = two_product(negate, cdx);
+            bt_clen = 2;
+            (bt_a[1], bt_a[0]) = two_product(bdytail, adx);
+            bt_alen = 2;
         }
-      } else {
+    } else {
         if (bdytail == 0.0) {
-          (bt_c[1], bt_c[0]) = two_product(bdxtail, cdy);
-          bt_clen = 2;
-          let negate = -bdxtail;
-          (bt_a[1], bt_a[0]) = two_product(negate, ady);
-          bt_alen = 2;
+            (bt_c[1], bt_c[0]) = two_product(bdxtail, cdy);
+            bt_clen = 2;
+            let negate = -bdxtail;
+            (bt_a[1], bt_a[0]) = two_product(negate, ady);
+            bt_alen = 2;
         } else {
-          (bdxt_cdy1, bdxt_cdy0) = two_product(bdxtail, cdy);
-          (bdyt_cdx1, bdyt_cdx0) = two_product(bdytail, cdx);
-          (bt_c[3], bt_c[2], bt_c[1], bt_c[0]) = two_two_diff(bdxt_cdy1, bdxt_cdy0, bdyt_cdx1, bdyt_cdx0);
-          bt_clen = 4;
-          (bdyt_adx1, bdyt_adx0) = two_product(bdytail, adx);
-          (bdxt_ady1, bdxt_ady0) = two_product(bdxtail, ady);
-          (bt_a[3], bt_a[2], bt_a[1], bt_a[0]) = two_two_diff(bdyt_adx1, bdyt_adx0, bdxt_ady1, bdxt_ady0);
-          bt_alen = 4;
+            (bdxt_cdy1, bdxt_cdy0) = two_product(bdxtail, cdy);
+            (bdyt_cdx1, bdyt_cdx0) = two_product(bdytail, cdx);
+            (bt_c[3], bt_c[2], bt_c[1], bt_c[0]) =
+                two_two_diff(bdxt_cdy1, bdxt_cdy0, bdyt_cdx1, bdyt_cdx0);
+            bt_clen = 4;
+            (bdyt_adx1, bdyt_adx0) = two_product(bdytail, adx);
+            (bdxt_ady1, bdxt_ady0) = two_product(bdxtail, ady);
+            (bt_a[3], bt_a[2], bt_a[1], bt_a[0]) =
+                two_two_diff(bdyt_adx1, bdyt_adx0, bdxt_ady1, bdxt_ady0);
+            bt_alen = 4;
         }
-      }
-      if (cdxtail == 0.0) {
+    }
+    if (cdxtail == 0.0) {
         if (cdytail == 0.0) {
-          ct_a[0] = 0.0;
-          ct_alen = 1;
-          ct_b[0] = 0.0;
-          ct_blen = 1;
+            ct_a[0] = 0.0;
+            ct_alen = 1;
+            ct_b[0] = 0.0;
+            ct_blen = 1;
         } else {
-          let negate = -cdytail;
-          (ct_a[1], ct_a[0]) = two_product(negate, adx);
-          ct_alen = 2;
-          (ct_b[1], ct_b[0]) = two_product(cdytail, bdx, );
-          ct_blen = 2;
+            let negate = -cdytail;
+            (ct_a[1], ct_a[0]) = two_product(negate, adx);
+            ct_alen = 2;
+            (ct_b[1], ct_b[0]) = two_product(cdytail, bdx);
+            ct_blen = 2;
         }
-      } else {
+    } else {
         if (cdytail == 0.0) {
-          (ct_a[1], ct_a[0]) = two_product(cdxtail, ady);
-          ct_alen = 2;
-          let negate = -cdxtail;
-          (ct_b[1], ct_b[0]) = two_product(negate, bdy);
-          ct_blen = 2;
+            (ct_a[1], ct_a[0]) = two_product(cdxtail, ady);
+            ct_alen = 2;
+            let negate = -cdxtail;
+            (ct_b[1], ct_b[0]) = two_product(negate, bdy);
+            ct_blen = 2;
         } else {
-          (cdxt_ady1, cdxt_ady0) = two_product(cdxtail, ady);
-          (cdyt_adx1, cdyt_adx0) = two_product(cdytail, adx);
-          (ct_a[3], ct_a[2], ct_a[1], ct_a[0]) = two_two_diff(cdxt_ady1, cdxt_ady0, cdyt_adx1, cdyt_adx0);
-          ct_alen = 4;
-          (cdyt_bdx1, cdyt_bdx0) = two_product(cdytail, bdx);
-          (cdxt_bdy1, cdxt_bdy0) = two_product(cdxtail, bdy);
-          (ct_b[3], ct_b[2], ct_b[1], ct_b[0]) = two_two_diff(cdyt_bdx1, cdyt_bdx0, cdxt_bdy1, cdxt_bdy0);
-          ct_blen = 4;
+            (cdxt_ady1, cdxt_ady0) = two_product(cdxtail, ady);
+            (cdyt_adx1, cdyt_adx0) = two_product(cdytail, adx);
+            (ct_a[3], ct_a[2], ct_a[1], ct_a[0]) =
+                two_two_diff(cdxt_ady1, cdxt_ady0, cdyt_adx1, cdyt_adx0);
+            ct_alen = 4;
+            (cdyt_bdx1, cdyt_bdx0) = two_product(cdytail, bdx);
+            (cdxt_bdy1, cdxt_bdy0) = two_product(cdxtail, bdy);
+            (ct_b[3], ct_b[2], ct_b[1], ct_b[0]) =
+                two_two_diff(cdyt_bdx1, cdyt_bdx0, cdxt_bdy1, cdxt_bdy0);
+            ct_blen = 4;
         }
-      }
-    
+    }
+
     let mut bct = [0f64; 8];
     let mut cat = [0f64; 8];
     let mut abt = [0f64; 8];
     let mut u = [0f64; 4];
     let mut v = [0f64; 12];
     let mut w = [0f64; 16];
-    let vlength, wlength: usize;
+    let vlength: usize;
+    let wlength: usize;
 
     let bctlen = fast_expansion_sum_zeroelim(bt_clen, bt_c, ct_blen, ct_b, bct);
-  let mut wlength = scale_expansion_zeroelim(bctlen, bct, adz, w);
-  let mut finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                          finother);
-  let mut finswap = finnow; finnow = finother; finother = finswap;
+    let mut wlength = scale_expansion_zeroelim(bctlen, bct, adz, w);
+    let mut finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+    let mut finswap = finnow;
+    finnow = finother;
+    finother = finswap;
 
-  let catlen = fast_expansion_sum_zeroelim(ct_alen, ct_a, at_clen, at_c, cat);
-  wlength = scale_expansion_zeroelim(catlen, cat, bdz, w);
-  finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                          finother);
-  finswap = finnow; finnow = finother; finother = finswap;
+    let catlen = fast_expansion_sum_zeroelim(ct_alen, ct_a, at_clen, at_c, cat);
+    wlength = scale_expansion_zeroelim(catlen, cat, bdz, w);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
 
-  let abtlen = fast_expansion_sum_zeroelim(at_blen, at_b, bt_alen, bt_a, abt);
-  wlength = scale_expansion_zeroelim(abtlen, abt, cdz, w);
-  finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                          finother);
-  finswap = finnow; finnow = finother; finother = finswap;
+    let abtlen = fast_expansion_sum_zeroelim(at_blen, at_b, bt_alen, bt_a, abt);
+    wlength = scale_expansion_zeroelim(abtlen, abt, cdz, w);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
 
-  if (adztail != 0.0) {
-    vlength = scale_expansion_zeroelim(4, bc, adztail, v);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
-  if (bdztail != 0.0) {
-    vlength = scale_expansion_zeroelim(4, ca, bdztail, v);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
-  if (cdztail != 0.0) {
-    vlength = scale_expansion_zeroelim(4, ab, cdztail, v);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
+    if (adztail != 0.0) {
+        vlength = scale_expansion_zeroelim(4, bc, adztail, v);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
+    if (bdztail != 0.0) {
+        vlength = scale_expansion_zeroelim(4, ca, bdztail, v);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
+    if (cdztail != 0.0) {
+        vlength = scale_expansion_zeroelim(4, ab, cdztail, v);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
 
-  if (adxtail != 0.0) {
-    if (bdytail != 0.0) {
-      let (adxt_bdyt1, adxt_bdyt0) = two_product(adxtail, bdytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdz);
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (cdztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdztail, );
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
+    if (adxtail != 0.0) {
+        if (bdytail != 0.0) {
+            let (adxt_bdyt1, adxt_bdyt0) = two_product(adxtail, bdytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdz);
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (cdztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
+        if (cdytail != 0.0) {
+            let negate = -adxtail;
+            (adxt_cdyt1, adxt_cdyt0) = two_product(negate, cdytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdz);
+            u[3] = u3;
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (bdztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
     }
-    if (cdytail != 0.0) {
-      let negate = -adxtail;
-      (adxt_cdyt1, adxt_cdyt0) = two_product(negate, cdytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdz);
-      u[3] = u3;
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (bdztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdztail, );
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
+    if (bdxtail != 0.0) {
+        if (cdytail != 0.0) {
+            let (bdxt_cdyt1, bdxt_cdyt0) = two_product(bdxtail, cdytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adz);
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (adztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
+        if (adytail != 0.0) {
+            let negate = -bdxtail;
+            let (bdxt_adyt1, bdxt_adyt0) = two_product(negate, adytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdz);
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (cdztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
     }
-  }
-  if (bdxtail != 0.0) {
-    if (cdytail != 0.0) {
-      let (bdxt_cdyt1, bdxt_cdyt0) = two_product(bdxtail, cdytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adz);
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (adztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adztail,);
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
+    if (cdxtail != 0.0) {
+        if (adytail != 0.0) {
+            let (cdxt_adyt1, cdxt_adyt0) = two_product(cdxtail, adytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdz);
+            u[3] = u3;
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (bdztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
+        if (bdytail != 0.0) {
+            let negate = -cdxtail;
+            let (cdxt_bdyt1, cdxt_bdyt0) = two_product(negate, bdytail);
+            (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adz);
+            finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+            finswap = finnow;
+            finnow = finother;
+            finother = finswap;
+            if (adztail != 0.0) {
+                (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adztail);
+                finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u, finother);
+                finswap = finnow;
+                finnow = finother;
+                finother = finswap;
+            }
+        }
     }
-    if (adytail != 0.0) {
-      negate = -bdxtail;
-      let (bdxt_adyt1, bdxt_adyt0) = two_product(let negate, adytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdz);
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (cdztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdztail);
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
-    }
-  }
-  if (cdxtail != 0.0) {
-    if (adytail != 0.0) {
-      let (cdxt_adyt1, cdxt_adyt0) = two_product(cdxtail, adytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdz);
-      u[3] = u3;
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (bdztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdztail);
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
-    }
-    if (bdytail != 0.0) {
-      negate = -cdxtail;
-      let (cdxt_bdyt1, cdxt_bdyt0) = two_product(let negate, bdytail);
-      (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adz);
-      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                              finother);
-      finswap = finnow; finnow = finother; finother = finswap;
-      if (adztail != 0.0) {
-        (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adztail);
-        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
-                                                finother);
-        finswap = finnow; finnow = finother; finother = finswap;
-      }
-    }
-  }
 
-  if (adztail != 0.0) {
-    wlength = scale_expansion_zeroelim(bctlen, bct, adztail, w);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
-  if (bdztail != 0.0) {
-    wlength = scale_expansion_zeroelim(catlen, cat, bdztail, w);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
-  if (cdztail != 0.0) {
-    wlength = scale_expansion_zeroelim(abtlen, abt, cdztail, w);
-    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
-                                            finother);
-    finswap = finnow; finnow = finother; finother = finswap;
-  }
+    if (adztail != 0.0) {
+        wlength = scale_expansion_zeroelim(bctlen, bct, adztail, w);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
+    if (bdztail != 0.0) {
+        wlength = scale_expansion_zeroelim(catlen, cat, bdztail, w);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
+    if (cdztail != 0.0) {
+        wlength = scale_expansion_zeroelim(abtlen, abt, cdztail, w);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+    }
 
-  return finnow[finlength - 1];
+    return finnow[finlength - 1];
 }
 
 /// Returns a positive value if the coordinate `pd` lies **outside** the circle passing through `pa`, `pb`, and `pc`.  
