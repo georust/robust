@@ -221,7 +221,7 @@ pub fn orient3d<T: Into<f64>>(
         + (abs(adxbdy) + abs(bdxady)) * abs(cdz);
 
     let errbound = O3DERRBOUND_A * permanent;
-    if ((det > errbound) || (-det > errbound)) {
+    if det > errbound || -det > errbound {
         return det;
     }
 
@@ -273,7 +273,7 @@ fn orient3dadapt(
 
     let mut det = estimate(&fin1[..finlength]);
     let mut errbound = O3DERRBOUND_B * permanent;
-    if ((det >= errbound) || (-det >= errbound)) {
+    if det >= errbound || -det >= errbound {
         return det;
     }
 
@@ -307,7 +307,7 @@ fn orient3dadapt(
             + bdztail * (cdx * ady - cdy * adx))
         + (cdz * ((adx * bdytail + bdy * adxtail) - (ady * bdxtail + bdx * adytail))
             + cdztail * (adx * bdy - ady * bdx));
-    if ((det >= errbound) || (-det >= errbound)) {
+    if det >= errbound || -det >= errbound {
         return det;
     }
 
@@ -327,7 +327,7 @@ fn orient3dadapt(
     let ct_alen: usize;
     let ct_blen: usize;
     if adxtail == 0.0 {
-        if (adytail == 0.0) {
+        if adytail == 0.0 {
             at_b[0] = 0.0;
             at_blen = 1;
             at_c[0] = 0.0;
@@ -339,25 +339,23 @@ fn orient3dadapt(
             (at_c[1], at_c[0]) = two_product(adytail, cdx);
             at_clen = 2;
         }
+    } else if adytail == 0.0 {
+        (at_b[1], at_b[0]) = two_product(adxtail, bdy);
+        at_blen = 2;
+        let negate = -adxtail;
+        (at_c[1], at_c[0]) = two_product(negate, cdy);
+        at_clen = 2;
     } else {
-        if adytail == 0.0 {
-            (at_b[1], at_b[0]) = two_product(adxtail, bdy);
-            at_blen = 2;
-            let negate = -adxtail;
-            (at_c[1], at_c[0]) = two_product(negate, cdy);
-            at_clen = 2;
-        } else {
-            let (adxt_bdy1, adxt_bdy0) = two_product(adxtail, bdy);
-            let (adyt_bdx1, adyt_bdx0) = two_product(adytail, bdx);
-            (at_b[3], at_b[2], at_b[1], at_b[0]) =
-                two_two_diff(adxt_bdy1, adxt_bdy0, adyt_bdx1, adyt_bdx0);
-            at_blen = 4;
-            let (adyt_cdx1, adyt_cdx0) = two_product(adytail, cdx);
-            let (adxt_cdy1, adxt_cdy0) = two_product(adxtail, cdy);
-            (at_c[3], at_c[2], at_c[1], at_c[0]) =
-                two_two_diff(adyt_cdx1, adyt_cdx0, adxt_cdy1, adxt_cdy0);
-            at_clen = 4;
-        }
+        let (adxt_bdy1, adxt_bdy0) = two_product(adxtail, bdy);
+        let (adyt_bdx1, adyt_bdx0) = two_product(adytail, bdx);
+        (at_b[3], at_b[2], at_b[1], at_b[0]) =
+            two_two_diff(adxt_bdy1, adxt_bdy0, adyt_bdx1, adyt_bdx0);
+        at_blen = 4;
+        let (adyt_cdx1, adyt_cdx0) = two_product(adytail, cdx);
+        let (adxt_cdy1, adxt_cdy0) = two_product(adxtail, cdy);
+        (at_c[3], at_c[2], at_c[1], at_c[0]) =
+            two_two_diff(adyt_cdx1, adyt_cdx0, adxt_cdy1, adxt_cdy0);
+        at_clen = 4;
     }
     if bdxtail == 0.0 {
         if bdytail == 0.0 {
@@ -372,25 +370,23 @@ fn orient3dadapt(
             (bt_a[1], bt_a[0]) = two_product(bdytail, adx);
             bt_alen = 2;
         }
+    } else if bdytail == 0.0 {
+        (bt_c[1], bt_c[0]) = two_product(bdxtail, cdy);
+        bt_clen = 2;
+        let negate = -bdxtail;
+        (bt_a[1], bt_a[0]) = two_product(negate, ady);
+        bt_alen = 2;
     } else {
-        if bdytail == 0.0 {
-            (bt_c[1], bt_c[0]) = two_product(bdxtail, cdy);
-            bt_clen = 2;
-            let negate = -bdxtail;
-            (bt_a[1], bt_a[0]) = two_product(negate, ady);
-            bt_alen = 2;
-        } else {
-            let (bdxt_cdy1, bdxt_cdy0) = two_product(bdxtail, cdy);
-            let (bdyt_cdx1, bdyt_cdx0) = two_product(bdytail, cdx);
-            (bt_c[3], bt_c[2], bt_c[1], bt_c[0]) =
-                two_two_diff(bdxt_cdy1, bdxt_cdy0, bdyt_cdx1, bdyt_cdx0);
-            bt_clen = 4;
-            let (bdyt_adx1, bdyt_adx0) = two_product(bdytail, adx);
-            let (bdxt_ady1, bdxt_ady0) = two_product(bdxtail, ady);
-            (bt_a[3], bt_a[2], bt_a[1], bt_a[0]) =
-                two_two_diff(bdyt_adx1, bdyt_adx0, bdxt_ady1, bdxt_ady0);
-            bt_alen = 4;
-        }
+        let (bdxt_cdy1, bdxt_cdy0) = two_product(bdxtail, cdy);
+        let (bdyt_cdx1, bdyt_cdx0) = two_product(bdytail, cdx);
+        (bt_c[3], bt_c[2], bt_c[1], bt_c[0]) =
+            two_two_diff(bdxt_cdy1, bdxt_cdy0, bdyt_cdx1, bdyt_cdx0);
+        bt_clen = 4;
+        let (bdyt_adx1, bdyt_adx0) = two_product(bdytail, adx);
+        let (bdxt_ady1, bdxt_ady0) = two_product(bdxtail, ady);
+        (bt_a[3], bt_a[2], bt_a[1], bt_a[0]) =
+            two_two_diff(bdyt_adx1, bdyt_adx0, bdxt_ady1, bdxt_ady0);
+        bt_alen = 4;
     }
     if cdxtail == 0.0 {
         if cdytail == 0.0 {
@@ -405,25 +401,23 @@ fn orient3dadapt(
             (ct_b[1], ct_b[0]) = two_product(cdytail, bdx);
             ct_blen = 2;
         }
+    } else if cdytail == 0.0 {
+        (ct_a[1], ct_a[0]) = two_product(cdxtail, ady);
+        ct_alen = 2;
+        let negate = -cdxtail;
+        (ct_b[1], ct_b[0]) = two_product(negate, bdy);
+        ct_blen = 2;
     } else {
-        if cdytail == 0.0 {
-            (ct_a[1], ct_a[0]) = two_product(cdxtail, ady);
-            ct_alen = 2;
-            let negate = -cdxtail;
-            (ct_b[1], ct_b[0]) = two_product(negate, bdy);
-            ct_blen = 2;
-        } else {
-            let (cdxt_ady1, cdxt_ady0) = two_product(cdxtail, ady);
-            let (cdyt_adx1, cdyt_adx0) = two_product(cdytail, adx);
-            (ct_a[3], ct_a[2], ct_a[1], ct_a[0]) =
-                two_two_diff(cdxt_ady1, cdxt_ady0, cdyt_adx1, cdyt_adx0);
-            ct_alen = 4;
-            let (cdyt_bdx1, cdyt_bdx0) = two_product(cdytail, bdx);
-            let (cdxt_bdy1, cdxt_bdy0) = two_product(cdxtail, bdy);
-            (ct_b[3], ct_b[2], ct_b[1], ct_b[0]) =
-                two_two_diff(cdyt_bdx1, cdyt_bdx0, cdxt_bdy1, cdxt_bdy0);
-            ct_blen = 4;
-        }
+        let (cdxt_ady1, cdxt_ady0) = two_product(cdxtail, ady);
+        let (cdyt_adx1, cdyt_adx0) = two_product(cdytail, adx);
+        (ct_a[3], ct_a[2], ct_a[1], ct_a[0]) =
+            two_two_diff(cdxt_ady1, cdxt_ady0, cdyt_adx1, cdyt_adx0);
+        ct_alen = 4;
+        let (cdyt_bdx1, cdyt_bdx0) = two_product(cdytail, bdx);
+        let (cdxt_bdy1, cdxt_bdy0) = two_product(cdxtail, bdy);
+        (ct_b[3], ct_b[2], ct_b[1], ct_b[0]) =
+            two_two_diff(cdyt_bdx1, cdyt_bdx0, cdxt_bdy1, cdxt_bdy0);
+        ct_blen = 4;
     }
 
     let mut bct = [0f64; 8];
@@ -433,10 +427,10 @@ fn orient3dadapt(
     let mut v = [0f64; 12];
     let mut w = [0f64; 16];
     let mut vlength: usize;
-    let wlength: usize;
+    let mut wlength: usize;
 
     let bctlen = fast_expansion_sum_zeroelim(&bt_c[..bt_clen], &ct_b[..ct_blen], &mut bct);
-    let mut wlength = scale_expansion_zeroelim(&bct[..bctlen], adz, &mut w);
+    wlength = scale_expansion_zeroelim(&bct[..bctlen], adz, &mut w);
     let mut finlength =
         fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
     ::core::mem::swap(&mut finnow, &mut finother);
@@ -451,42 +445,42 @@ fn orient3dadapt(
     finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
     ::core::mem::swap(&mut finnow, &mut finother);
 
-    if (adztail != 0.0) {
+    if adztail != 0.0 {
         vlength = scale_expansion_zeroelim(&bc[..4], adztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
         ::core::mem::swap(&mut finnow, &mut finother);
     }
-    if (bdztail != 0.0) {
+    if bdztail != 0.0 {
         vlength = scale_expansion_zeroelim(&ca[..4], bdztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
         ::core::mem::swap(&mut finnow, &mut finother);
     }
-    if (cdztail != 0.0) {
+    if cdztail != 0.0 {
         vlength = scale_expansion_zeroelim(&ab[..4], cdztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
         ::core::mem::swap(&mut finnow, &mut finother);
     }
 
-    if (adxtail != 0.0) {
-        if (bdytail != 0.0) {
+    if adxtail != 0.0 {
+        if bdytail != 0.0 {
             let (adxt_bdyt1, adxt_bdyt0) = two_product(adxtail, bdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (cdztail != 0.0) {
+            if cdztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
                 ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
-        if (cdytail != 0.0) {
+        if cdytail != 0.0 {
             let negate = -adxtail;
             let (adxt_cdyt1, adxt_cdyt0) = two_product(negate, cdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (bdztail != 0.0) {
+            if bdztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
@@ -494,26 +488,26 @@ fn orient3dadapt(
             }
         }
     }
-    if (bdxtail != 0.0) {
-        if (cdytail != 0.0) {
+    if bdxtail != 0.0 {
+        if cdytail != 0.0 {
             let (bdxt_cdyt1, bdxt_cdyt0) = two_product(bdxtail, cdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (adztail != 0.0) {
+            if adztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
                 ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
-        if (adytail != 0.0) {
+        if adytail != 0.0 {
             let negate = -bdxtail;
             let (bdxt_adyt1, bdxt_adyt0) = two_product(negate, adytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (cdztail != 0.0) {
+            if cdztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
@@ -521,26 +515,26 @@ fn orient3dadapt(
             }
         }
     }
-    if (cdxtail != 0.0) {
-        if (adytail != 0.0) {
+    if cdxtail != 0.0 {
+        if adytail != 0.0 {
             let (cdxt_adyt1, cdxt_adyt0) = two_product(cdxtail, adytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (bdztail != 0.0) {
+            if bdztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
                 ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
-        if (bdytail != 0.0) {
+        if bdytail != 0.0 {
             let negate = -cdxtail;
             let (cdxt_bdyt1, cdxt_bdyt0) = two_product(negate, bdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
             ::core::mem::swap(&mut finnow, &mut finother);
-            if (adztail != 0.0) {
+            if adztail != 0.0 {
                 (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
@@ -565,7 +559,7 @@ fn orient3dadapt(
         ::core::mem::swap(&mut finnow, &mut finother);
     }
 
-    return finnow[finlength - 1];
+    finnow[finlength - 1]
 }
 
 /// Returns a positive value if the coordinate `pd` lies **outside** the circle passing through `pa`, `pb`, and `pc`.  
