@@ -1,5 +1,4 @@
 #![cfg_attr(feature = "no_std", no_std)]
-
 #![doc(html_logo_url = "https://raw.githubusercontent.com/georust/meta/master/logo/logo.png")]
 // Copyright 2017 The Spade Developers.
 // Copyright 2020 The GeoRust Project Developers.
@@ -9,7 +8,6 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-
 #![allow(non_snake_case)]
 
 //! This is a direct transcript of the sourcecode and algorithms provided by
@@ -39,6 +37,14 @@ pub struct Coord<T: Into<f64>> {
     pub y: T,
 }
 
+/// A three dimensional coordinate.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Coord3D<T: Into<f64>> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
+}
+
 // These values are precomputed from the "exactinit" method of the c-source code. They should? be
 // the same in all IEEE-754 environments, including rust f64
 const SPLITTER: f64 = 134_217_729f64;
@@ -47,6 +53,9 @@ const RESULTERRBOUND: f64 = (3.0 + 8.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_A: f64 = (3.0 + 16.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_B: f64 = (2.0 + 12.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_C: f64 = (9.0 + 64.0 * EPSILON) * EPSILON * EPSILON;
+const O3DERRBOUND_A: f64 = (7.0 + 56.0 * epsilon) * epsilon;
+const O3DERRBOUND_B = (3.0 + 28.0 * epsilon) * epsilon;
+const O3DERRBOUND_C = (26.0 + 288.0 * epsilon) * epsilon * epsilon;
 const ICCERRBOUND_A: f64 = (10.0 + 96.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_B: f64 = (4.0 + 48.0 * EPSILON) * EPSILON;
 const ICCERRBOUND_C: f64 = (44.0 + 576.0 * EPSILON) * EPSILON * EPSILON;
@@ -153,6 +162,415 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
     let mut D = [0.0f64; 16];
     let dlength = fast_expansion_sum_zeroelim(&C2[..c2length], &U, &mut D);
     D[dlength - 1]
+}
+
+/// Returns a positive value if the point `pd` lies below the plane passing through `pa`, `pb`, and `pc`
+/// (pc lies to the **left** of the directed line defined by coordinates pa and pb).  
+/// Returns a negative value if `pd` lies above the plane
+/// Returns `0` if they are **coplanar**.  
+pub fn orient3d<T: Into<f64>>(
+    pa: Coord3D<T>,
+    pb: Coord3D<T>,
+    pc: Coord3D<T>,
+    pd: Coord3D<T>,
+) -> f64 {
+    let pa = Coord3D {
+        x: pa.x.into(),
+        y: pa.y.into(),
+        z: pa.z.into(),
+    };
+    let pb = Coord3D {
+        x: pb.x.into(),
+        y: pb.y.into(),
+        z: pb.z.into(),
+    };
+    let pc = Coord3D {
+        x: pc.x.into(),
+        y: pc.y.into(),
+        z: pc.z.into(),
+    };
+    let pd = Coord3D {
+        x: pd.x.into(),
+        y: pd.y.into(),
+        z: pd.z.into(),
+    };
+
+    let adx = pa.x - pd.x;
+    let bdx = pb.x - pd.x;
+    let cdx = pc.x - pd.x;
+    let ady = pa.y - pd.y;
+    let bdy = pb.y - pd.y;
+    let cdy = pc.y - pd.y;
+    let adz = pa.z - pd.z;
+    let bdz = pb.z - pd.z;
+    let cdz = pc.z - pd.z;
+
+    let bdxcdy = bdx * cdy;
+    let cdxbdy = cdx * bdy;
+
+    let cdxady = cdx * ady;
+    let adxcdy = adx * cdy;
+
+    let adxbdy = adx * bdy;
+    let bdxady = bdx * ady;
+
+    let det = adz * (bdxcdy - cdxbdy) + bdz * (cdxady - adxcdy) + cdz * (adxbdy - bdxady);
+
+    let permanent = (abs(bdxcdy) + abs(cdxbdy)) * abs(adz)
+        + (abs(cdxady) + abs(adxcdy)) * abs(bdz)
+        + (abs(adxbdy) + abs(bdxady)) * abs(cdz);
+
+    let errbound = O3DERRBOUND_A * permanent;
+    if ((det > errbound) || (-det > errbound)) {
+        return det;
+    }
+
+    orient3dadapt(pa, pb, pc, pd, permanent);
+}
+
+fn orient3dadapt(
+    pa: Coord3D<f64>,
+    pb: Coord3D<f64>,
+    pc: Coord3D<f64>,
+    pd: Coord3D<f64>,
+    permanent: f64,
+) -> f64 {
+    let adx = pa.x - pd.x;
+    let bdx = pb.x - pd.x;
+    let cdx = pc.x - pd.x;
+    let ady = pa.y - pd.y;
+    let bdy = pb.y - pd.y;
+    let cdy = pc.y - pd.y;
+    let adz = pa.z - pd.z;
+    let bdz = pb.z - pd.z;
+    let cdz = pc.z - pd.z;
+
+    let (bdxcdy1, bdxcdy0) = two_product(bdx, cdy);
+    let (cdxbdy1, cdxbdy0) = two_product(cdx, bdy);
+    let (bc3, bc2, bc1, bc0) = two_two_diff(bdxcdy1, bdxcdy0, cdxbdy1, cdxbdy0);
+    let bc = (bc0, bc1, bc2, bc3);
+    let mut adet = [0f64; 8];
+    let alen = scale_expansion_zeroelim(4, bc, adz, adet);
+
+    let (cdxady1, cdxady0) = two_product(cdx, ady);
+    let (adxcdy1, adxcdy0) = two_product(adx, cdy);
+    let (ca3, ca2, ca1, ca0) = two_two_diff(cdxady1, cdxady0, adxcdy1, adxcdy0);
+    let ca = (ca0, ca1, ca2, ca3);
+    let mut bdet = [0f64; 8];
+    let blen = scale_expansion_zeroelim(4, ca, bdz, bdet);
+
+    let (adxbdy1, adxbdy0) = two_product(adx, bdy);
+    let (bdxady1, bdxady0) = two_product(bdx, ady);
+    let (ab3, ab2, ab1, ab0) = two_two_diff(adxbdy1, adxbdy0, bdxady1, bdxady0);
+    let ab = (ab0, ab1, ab2, ab3);
+    let mut cdet = [0f64; 8];
+    let clen = scale_expansion_zeroelim(4, ab, cdz, cdet);
+
+    let mut abdet = [0f64; 16];
+    let ablen = fast_expansion_sum_zeroelim(alen, adet, blen, bdet, abdet);
+    let mut fin1 = [0f64; 192];
+    let finlength = fast_expansion_sum_zeroelim(ablen, abdet, clen, cdet, fin1);
+
+    let mut det = estimate(finlength, fin1);
+    let mut errbound = O3DERRBOUND_B * permanent;
+    if ((det >= errbound) || (-det >= errbound)) {
+      return det;
+    }
+
+    let adxtail = two_diff_tail(pa.x, pd.x, adx);
+    let bdxtail = two_diff_tail(pb.x, pd.x, bdx);
+    let cdxtail = two_diff_tail(pc.x, pd.x, cdx);
+    let adytail = two_diff_tail(pa.y, pd.y, ady);
+    let bdytail = two_diff_tail(pb.y, pd.y, bdy);
+    let cdytail = two_diff_tail(pc.y, pd.y, cdy);
+    let adztail = two_diff_tail(pa.z, pd.z, adz);
+    let bdztail = two_diff_tail(pb.z, pd.z, bdz);
+    let cdztail = two_diff_tail(pc.z, pd.z, cdz);
+  
+    if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0)
+        && (adytail == 0.0) && (bdytail == 0.0) && (cdytail == 0.0)
+        && (adztail == 0.0) && (bdztail == 0.0) && (cdztail == 0.0)) {
+        return det;
+    }
+
+    errbound = O3DERRBOUND_C * permanent + resulterrbound * Absolute(det);
+    det += (adz * ((bdx * cdytail + cdy * bdxtail)
+                   - (bdy * cdxtail + cdx * bdytail))
+            + adztail * (bdx * cdy - bdy * cdx))
+         + (bdz * ((cdx * adytail + ady * cdxtail)
+                   - (cdy * adxtail + adx * cdytail))
+            + bdztail * (cdx * ady - cdy * adx))
+         + (cdz * ((adx * bdytail + bdy * adxtail)
+                   - (ady * bdxtail + bdx * adytail))
+            + cdztail * (adx * bdy - ady * bdx));
+    if ((det >= errbound) || (-det >= errbound)) {
+      return det;
+    }
+
+    let finnow = fin1;
+    let finother = [0f64; 192];
+
+    let mut at_b = [0f64; 4];
+    let mut at_c = [0f64; 4];
+    let mut bt_c = [0f64; 4];
+    let mut bt_a = [0f64; 4];
+    let mut ct_a = [0f64; 4];
+    let mut ct_b = [0f64; 4];
+    let mut at_blen: usize;
+    let mut at_clen: usize;
+    let mut bt_clen: usize;
+    let mut bt_alen: usize;
+    let mut ct_alen: usize;
+    let mut ct_blen: usize;
+    if (adxtail == 0.0) {
+        if (adytail == 0.0) {
+          at_b[0] = 0.0;
+          at_blen = 1;
+          at_c[0] = 0.0;
+          at_clen = 1;
+        } else {
+          let negate = -adytail;
+          (at_b[1], at_b[0]) = two_product(negate, bdx);
+          at_blen = 2;
+          (at_c[1], at_c[0]) = two_product(adytail, cdx);
+          at_clen = 2;
+        }
+      } else {
+        if (adytail == 0.0) {
+          (at_b[1], at_b[0]) = two_product(adxtail, bdy);
+          at_blen = 2;
+          let negate = -adxtail;
+          (at_c[1], at_c[0]) = two_product(negate, cdy);
+          at_clen = 2;
+        } else {
+          (adxt_bdy1, adxt_bdy0) = two_product(adxtail, bdy);
+          (adyt_bdx1, adyt_bdx0) = two_product(adytail, bdx);
+          (at_b[3], at_b[2], at_b[1], at_b[0]) = two_two_diff(adxt_bdy1, adxt_bdy0, adyt_bdx1, adyt_bdx0);
+          at_blen = 4;
+          (adyt_cdx1, adyt_cdx0) = two_product(adytail, cdx);
+          (adxt_cdy1, adxt_cdy0) = two_product(adxtail, cdy);
+          (at_c[3], at_c[2], at_c[1], at_c[0]) = two_two_diff(adyt_cdx1, adyt_cdx0, adxt_cdy1, adxt_cdy0);
+          at_clen = 4;
+        }
+      }
+      if (bdxtail == 0.0) {
+        if (bdytail == 0.0) {
+          bt_c[0] = 0.0;
+          bt_clen = 1;
+          bt_a[0] = 0.0;
+          bt_alen = 1;
+        } else {
+          let negate = -bdytail;
+          (bt_c[1], bt_c[0]) = two_product(negate, cdx);
+          bt_clen = 2;
+          (bt_a[1], bt_a[0]) = two_product(bdytail, adx);
+          bt_alen = 2;
+        }
+      } else {
+        if (bdytail == 0.0) {
+          (bt_c[1], bt_c[0]) = two_product(bdxtail, cdy);
+          bt_clen = 2;
+          let negate = -bdxtail;
+          (bt_a[1], bt_a[0]) = two_product(negate, ady);
+          bt_alen = 2;
+        } else {
+          (bdxt_cdy1, bdxt_cdy0) = two_product(bdxtail, cdy);
+          (bdyt_cdx1, bdyt_cdx0) = two_product(bdytail, cdx);
+          (bt_c[3], bt_c[2], bt_c[1], bt_c[0]) = two_two_diff(bdxt_cdy1, bdxt_cdy0, bdyt_cdx1, bdyt_cdx0);
+          bt_clen = 4;
+          (bdyt_adx1, bdyt_adx0) = two_product(bdytail, adx);
+          (bdxt_ady1, bdxt_ady0) = two_product(bdxtail, ady);
+          (bt_a[3], bt_a[2], bt_a[1], bt_a[0]) = two_two_diff(bdyt_adx1, bdyt_adx0, bdxt_ady1, bdxt_ady0);
+          bt_alen = 4;
+        }
+      }
+      if (cdxtail == 0.0) {
+        if (cdytail == 0.0) {
+          ct_a[0] = 0.0;
+          ct_alen = 1;
+          ct_b[0] = 0.0;
+          ct_blen = 1;
+        } else {
+          let negate = -cdytail;
+          (ct_a[1], ct_a[0]) = two_product(negate, adx);
+          ct_alen = 2;
+          (ct_b[1], ct_b[0]) = two_product(cdytail, bdx, );
+          ct_blen = 2;
+        }
+      } else {
+        if (cdytail == 0.0) {
+          (ct_a[1], ct_a[0]) = two_product(cdxtail, ady);
+          ct_alen = 2;
+          let negate = -cdxtail;
+          (ct_b[1], ct_b[0]) = two_product(negate, bdy);
+          ct_blen = 2;
+        } else {
+          (cdxt_ady1, cdxt_ady0) = two_product(cdxtail, ady);
+          (cdyt_adx1, cdyt_adx0) = two_product(cdytail, adx);
+          (ct_a[3], ct_a[2], ct_a[1], ct_a[0]) = two_two_diff(cdxt_ady1, cdxt_ady0, cdyt_adx1, cdyt_adx0);
+          ct_alen = 4;
+          (cdyt_bdx1, cdyt_bdx0) = two_product(cdytail, bdx);
+          (cdxt_bdy1, cdxt_bdy0) = two_product(cdxtail, bdy);
+          (ct_b[3], ct_b[2], ct_b[1], ct_b[0]) = two_two_diff(cdyt_bdx1, cdyt_bdx0, cdxt_bdy1, cdxt_bdy0);
+          ct_blen = 4;
+        }
+      }
+    
+    let mut bct = [0f64; 8];
+    let mut cat = [0f64; 8];
+    let mut abt = [0f64; 8];
+    let mut u = [0f64; 4];
+    let mut v = [0f64; 12];
+    let mut w = [0f64; 16];
+    let vlength, wlength: usize;
+
+    let bctlen = fast_expansion_sum_zeroelim(bt_clen, bt_c, ct_blen, ct_b, bct);
+  let mut wlength = scale_expansion_zeroelim(bctlen, bct, adz, w);
+  let mut finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                          finother);
+  let mut finswap = finnow; finnow = finother; finother = finswap;
+
+  let catlen = fast_expansion_sum_zeroelim(ct_alen, ct_a, at_clen, at_c, cat);
+  wlength = scale_expansion_zeroelim(catlen, cat, bdz, w);
+  finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                          finother);
+  finswap = finnow; finnow = finother; finother = finswap;
+
+  let abtlen = fast_expansion_sum_zeroelim(at_blen, at_b, bt_alen, bt_a, abt);
+  wlength = scale_expansion_zeroelim(abtlen, abt, cdz, w);
+  finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                          finother);
+  finswap = finnow; finnow = finother; finother = finswap;
+
+  if (adztail != 0.0) {
+    vlength = scale_expansion_zeroelim(4, bc, adztail, v);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+  if (bdztail != 0.0) {
+    vlength = scale_expansion_zeroelim(4, ca, bdztail, v);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+  if (cdztail != 0.0) {
+    vlength = scale_expansion_zeroelim(4, ab, cdztail, v);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, vlength, v,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+
+  if (adxtail != 0.0) {
+    if (bdytail != 0.0) {
+      let (adxt_bdyt1, adxt_bdyt0) = two_product(adxtail, bdytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdz);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (cdztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdztail, );
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+    if (cdytail != 0.0) {
+      let negate = -adxtail;
+      (adxt_cdyt1, adxt_cdyt0) = two_product(negate, cdytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdz);
+      u[3] = u3;
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (bdztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdztail, );
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+  }
+  if (bdxtail != 0.0) {
+    if (cdytail != 0.0) {
+      let (bdxt_cdyt1, bdxt_cdyt0) = two_product(bdxtail, cdytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adz);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (adztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adztail,);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+    if (adytail != 0.0) {
+      negate = -bdxtail;
+      let (bdxt_adyt1, bdxt_adyt0) = two_product(let negate, adytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdz);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (cdztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdztail);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+  }
+  if (cdxtail != 0.0) {
+    if (adytail != 0.0) {
+      let (cdxt_adyt1, cdxt_adyt0) = two_product(cdxtail, adytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdz);
+      u[3] = u3;
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (bdztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdztail);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+    if (bdytail != 0.0) {
+      negate = -cdxtail;
+      let (cdxt_bdyt1, cdxt_bdyt0) = two_product(let negate, bdytail);
+      (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adz);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                              finother);
+      finswap = finnow; finnow = finother; finother = finswap;
+      if (adztail != 0.0) {
+        (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adztail);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, 4, u,
+                                                finother);
+        finswap = finnow; finnow = finother; finother = finswap;
+      }
+    }
+  }
+
+  if (adztail != 0.0) {
+    wlength = scale_expansion_zeroelim(bctlen, bct, adztail, w);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+  if (bdztail != 0.0) {
+    wlength = scale_expansion_zeroelim(catlen, cat, bdztail, w);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+  if (cdztail != 0.0) {
+    wlength = scale_expansion_zeroelim(abtlen, abt, cdztail, w);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, wlength, w,
+                                            finother);
+    finswap = finnow; finnow = finother; finother = finswap;
+  }
+
+  return finnow[finlength - 1];
 }
 
 /// Returns a positive value if the coordinate `pd` lies **outside** the circle passing through `pa`, `pb`, and `pc`.  
@@ -1165,6 +1583,16 @@ fn two_two_sum(a1: f64, a0: f64, b1: f64, b0: f64) -> (f64, f64, f64, f64) {
     (x3, x2, x1, x0)
 }
 
+#[inline]
+fn two_one_product(a1: f64, a0: f64, b: f64) -> (f64, f64, f64, f64) {
+    let (bhi, blo) = split(b);
+    let (mut _i, x0) = two_product_presplit(a0, b, bhi, blo);
+    let (mut _j, _0) = two_product_presplit(a1, b, bhi, blo);
+    let (_k, x1) = two_sum(_i, _0);
+    let (x3, x2) = fast_two_sum(_j, _k);
+    (x3, x2, x1, x0)
+}
+
 // f64::abs is not yet available in libcore, so we’ll need to use a separate
 // crate for this functionality.
 //
@@ -1182,7 +1610,7 @@ fn abs(x: f64) -> f64 {
 
 #[cfg(test)]
 mod test {
-    use super::{incircle, orient2d, Coord};
+    use super::{incircle, orient2d, orient3d, Coord, Coord3D};
 
     #[test]
     fn test_orient2d() {
@@ -1205,6 +1633,34 @@ mod test {
             y: -::core::f64::MIN_POSITIVE,
         };
 
+        for &(p, sign) in &[(p1, 0.0), (p2, 0.0), (p3, 1.0), (p4, -1.0)] {
+            let det = orient2d(from, to, p);
+            assert!(det == sign || det.signum() == sign.signum());
+        }
+    }
+
+    #[test]
+    fn test_orient3d() {
+        let from = Coord3D { x: -1f64, y: -1.0 };
+        let to = Coord3D { x: 1f64, y: 1.0 };
+        let p1 = Coord3D {
+            x: ::core::f64::MIN_POSITIVE,
+            y: ::core::f64::MIN_POSITIVE,
+        };
+        let p2 = Coord3D {
+            x: -::core::f64::MIN_POSITIVE,
+            y: -::core::f64::MIN_POSITIVE,
+        };
+        let p3 = Coord3D {
+            x: -::core::f64::MIN_POSITIVE,
+            y: ::core::f64::MIN_POSITIVE,
+        };
+        let p4 = Coord3D {
+            x: ::core::f64::MIN_POSITIVE,
+            y: -::core::f64::MIN_POSITIVE,
+        };
+
+        // TODO: make this test work
         for &(p, sign) in &[(p1, 0.0), (p2, 0.0), (p3, 1.0), (p4, -1.0)] {
             let det = orient2d(from, to, p);
             assert!(det == sign || det.signum() == sign.signum());
