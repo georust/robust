@@ -439,44 +439,32 @@ fn orient3dadapt(
     let mut wlength = scale_expansion_zeroelim(&bct[..bctlen], adz, &mut w);
     let mut finlength =
         fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-    let mut finswap = finnow;
-    finnow = finother;
-    finother = finswap;
+    ::core::mem::swap(&mut finnow, &mut finother);
 
     let catlen = fast_expansion_sum_zeroelim(&ct_a[..ct_alen], &at_c[..at_clen], &mut cat);
     wlength = scale_expansion_zeroelim(&cat[..catlen], bdz, &mut w);
     finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-    finswap = finnow;
-    finnow = finother;
-    finother = finswap;
+    ::core::mem::swap(&mut finnow, &mut finother);
 
     let abtlen = fast_expansion_sum_zeroelim(&at_b[..at_blen], &bt_a[..bt_alen], &mut abt);
     wlength = scale_expansion_zeroelim(&abt[..abtlen], cdz, &mut w);
     finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-    finswap = finnow;
-    finnow = finother;
-    finother = finswap;
+    ::core::mem::swap(&mut finnow, &mut finother);
 
     if (adztail != 0.0) {
         vlength = scale_expansion_zeroelim(&bc[..4], adztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
     if (bdztail != 0.0) {
         vlength = scale_expansion_zeroelim(&ca[..4], bdztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
     if (cdztail != 0.0) {
         vlength = scale_expansion_zeroelim(&ab[..4], cdztail, &mut v);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &v[..vlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
 
     if (adxtail != 0.0) {
@@ -484,16 +472,12 @@ fn orient3dadapt(
             let (adxt_bdyt1, adxt_bdyt0) = two_product(adxtail, bdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (cdztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(adxt_bdyt1, adxt_bdyt0, cdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
         if (cdytail != 0.0) {
@@ -501,16 +485,12 @@ fn orient3dadapt(
             let (adxt_cdyt1, adxt_cdyt0) = two_product(negate, cdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (bdztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(adxt_cdyt1, adxt_cdyt0, bdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
     }
@@ -519,16 +499,12 @@ fn orient3dadapt(
             let (bdxt_cdyt1, bdxt_cdyt0) = two_product(bdxtail, cdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (adztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_cdyt1, bdxt_cdyt0, adztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
         if (adytail != 0.0) {
@@ -536,16 +512,12 @@ fn orient3dadapt(
             let (bdxt_adyt1, bdxt_adyt0) = two_product(negate, adytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (cdztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(bdxt_adyt1, bdxt_adyt0, cdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
     }
@@ -554,16 +526,12 @@ fn orient3dadapt(
             let (cdxt_adyt1, cdxt_adyt0) = two_product(cdxtail, adytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (bdztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_adyt1, cdxt_adyt0, bdztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
         if (bdytail != 0.0) {
@@ -571,16 +539,12 @@ fn orient3dadapt(
             let (cdxt_bdyt1, cdxt_bdyt0) = two_product(negate, bdytail);
             (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adz);
             finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-            finswap = finnow;
-            finnow = finother;
-            finother = finswap;
+            ::core::mem::swap(&mut finnow, &mut finother);
             if (adztail != 0.0) {
                 (u[3], u[2], u[1], u[0]) = two_one_product(cdxt_bdyt1, cdxt_bdyt0, adztail);
                 finlength =
                     fast_expansion_sum_zeroelim(&finnow[..finlength], &u[..4], &mut finother);
-                finswap = finnow;
-                finnow = finother;
-                finother = finswap;
+                ::core::mem::swap(&mut finnow, &mut finother);
             }
         }
     }
@@ -588,23 +552,17 @@ fn orient3dadapt(
     if adztail != 0.0 {
         wlength = scale_expansion_zeroelim(&bct[..bctlen], adztail, &mut w);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
     if bdztail != 0.0 {
         wlength = scale_expansion_zeroelim(&cat[..catlen], bdztail, &mut w);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
     if cdztail != 0.0 {
         wlength = scale_expansion_zeroelim(&abt[..abtlen], cdztail, &mut w);
         finlength = fast_expansion_sum_zeroelim(&finnow[..finlength], &w[..wlength], &mut finother);
-        finswap = finnow;
-        finnow = finother;
-        finother = finswap;
+        ::core::mem::swap(&mut finnow, &mut finother);
     }
 
     return finnow[finlength - 1];
