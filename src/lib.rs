@@ -165,7 +165,7 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
 }
 
 /// Returns a positive value if the point `pd` lies below the plane passing through `pa`, `pb`, and `pc`
-/// (pc lies to the **left** of the directed line defined by coordinates pa and pb).  
+/// ("below" is defined so that pa, pb, and pc appear in counterclockwise order when viewed from above the plane).  
 /// Returns a negative value if `pd` lies above the plane
 /// Returns `0` if they are **coplanar**.  
 pub fn orient3d<T: Into<f64>>(
@@ -1630,28 +1630,44 @@ mod test {
 
     #[test]
     fn test_orient3d() {
-        let from = Coord3D { x: -1f64, y: -1.0 };
-        let to = Coord3D { x: 1f64, y: 1.0 };
+        // plane
+        let pa = Coord3D {
+            x: 1.,
+            y: 0.,
+            z: 1.,
+        };
+        let pb = Coord3D {
+            x: -1.,
+            y: 0.,
+            z: -1.,
+        };
+        let pc = Coord3D {
+            x: -1.,
+            y: 0.,
+            z: 0.,
+        };
+
+        // above plane - negative value expected
         let p1 = Coord3D {
             x: ::core::f64::MIN_POSITIVE,
             y: ::core::f64::MIN_POSITIVE,
+            z: ::core::f64::MIN_POSITIVE,
         };
+        // below plane - positive value expected
         let p2 = Coord3D {
             x: -::core::f64::MIN_POSITIVE,
             y: -::core::f64::MIN_POSITIVE,
+            z: -::core::f64::MIN_POSITIVE,
         };
+        // collinear to plane - zero expected
         let p3 = Coord3D {
-            x: -::core::f64::MIN_POSITIVE,
-            y: ::core::f64::MIN_POSITIVE,
-        };
-        let p4 = Coord3D {
-            x: ::core::f64::MIN_POSITIVE,
-            y: -::core::f64::MIN_POSITIVE,
+            x: 0.,
+            y: 0.,
+            z: 0.,
         };
 
-        // TODO: make this test work
-        for &(p, sign) in &[(p1, 0.0), (p2, 0.0), (p3, 1.0), (p4, -1.0)] {
-            let det = orient2d(from, to, p);
+        for &(p, sign) in &[(p1, -1.0), (p2, 1.0), (p3, 0.0)] {
+            let det = orient3d(pa, pb, pc, p);
             assert!(det == sign || det.signum() == sign.signum());
         }
     }
