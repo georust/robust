@@ -1549,20 +1549,22 @@ fn insphereadapt<T: Into<f64>>(
         fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], &mut temp16);
     let mut temp24len =
         fast_expansion_sum_zeroelim(&temp8c[..temp8clen], &temp16[..temp16len], &mut temp24);
-    let mut temp48len = scale_expansion_zeroelim(&temp24[..temp24len], aex, &mut temp48);
+    let temp48len = scale_expansion_zeroelim(&temp24[..temp24len], aex, &mut temp48);
     let mut xlen = scale_expansion_zeroelim(&temp48[..temp48len], -aex, &mut xdet);
-    let mut temp48len = scale_expansion_zeroelim(&temp24[..temp24len], aey, &mut temp48);
+    let temp48len = scale_expansion_zeroelim(&temp24[..temp24len], aey, &mut temp48);
     let mut ylen = scale_expansion_zeroelim(&temp48[..temp48len], -aey, &mut ydet);
     let mut temp48len = scale_expansion_zeroelim(&temp24[..temp24len], aez, &mut temp48);
     let mut zlen = scale_expansion_zeroelim(&temp48[..temp48len], -aez, &mut zdet);
     let mut xylen = fast_expansion_sum_zeroelim(&xdet[..xlen], &ydet[..ylen], &mut xydet);
-    let mut alen = fast_expansion_sum_zeroelim(&xydet[..xylen], &zdet[..zlen], &mut adet);
+    let alen = fast_expansion_sum_zeroelim(&xydet[..xylen], &zdet[..zlen], &mut adet);
 
     temp8alen = scale_expansion_zeroelim(&da[..4], cez, &mut temp8a);
     temp8blen = scale_expansion_zeroelim(&ac[..4], dez, &mut temp8b);
     temp8clen = scale_expansion_zeroelim(&cd[..4], aez, &mut temp8c);
-    temp16len = fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], temp16);
-    temp24len = fast_expansion_sum_zeroelim(&temp8c[..temp8clen], &temp16[..temp16len], temp24);
+    temp16len =
+        fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], &mut temp16);
+    temp24len =
+        fast_expansion_sum_zeroelim(&temp8c[..temp8clen], &temp16[..temp16len], &mut temp24);
     temp48len = scale_expansion_zeroelim(&temp24[..temp24len], bex, &mut temp48);
     xlen = scale_expansion_zeroelim(&temp48[..temp48len], bex, &mut xdet);
     temp48len = scale_expansion_zeroelim(&temp24[..temp24len], bey, &mut temp48);
@@ -1575,16 +1577,18 @@ fn insphereadapt<T: Into<f64>>(
     temp8alen = scale_expansion_zeroelim(&ab[..4], dez, &mut temp8a);
     temp8blen = scale_expansion_zeroelim(&bd[..4], aez, &mut temp8b);
     temp8clen = scale_expansion_zeroelim(&da[..4], bez, &mut temp8c);
-    temp16len = fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], temp16);
-    temp24len = fast_expansion_sum_zeroelim(&temp8c[..temp8clen], &temp16[..temp16len], temp24);
+    temp16len =
+        fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], &mut temp16);
+    temp24len =
+        fast_expansion_sum_zeroelim(&temp8c[..temp8clen], &temp16[..temp16len], &mut temp24);
     temp48len = scale_expansion_zeroelim(&temp24[..temp24len], cex, &mut temp48);
     xlen = scale_expansion_zeroelim(&temp48[..temp48len], -cex, &mut xdet);
     temp48len = scale_expansion_zeroelim(&temp24[..temp24len], cey, &mut temp48);
     ylen = scale_expansion_zeroelim(&temp48[..temp48len], -cey, &mut ydet);
     temp48len = scale_expansion_zeroelim(&temp24[..temp24len], cez, &mut temp48);
     zlen = scale_expansion_zeroelim(&temp48[..temp48len], -cez, &mut zdet);
-    xylen = fast_expansion_sum_zeroelim(&xdet[..xlen], &ydet[..ylen], xydet);
-    let clen = fast_expansion_sum_zeroelim(&xydet[..xylen], &zdet[..zlen], cdet);
+    xylen = fast_expansion_sum_zeroelim(&xdet[..xlen], &ydet[..ylen], &mut xydet);
+    let clen = fast_expansion_sum_zeroelim(&xydet[..xylen], &zdet[..zlen], &mut cdet);
 
     temp8alen = scale_expansion_zeroelim(&bc[..4], aez, &mut temp8a);
     temp8blen = scale_expansion_zeroelim(&ac[..4], -bez, &mut temp8b);
@@ -1606,7 +1610,7 @@ fn insphereadapt<T: Into<f64>>(
     let cdlen = fast_expansion_sum_zeroelim(&cdet[..clen], &ddet[..dlen], &mut cddet);
     let finlength = fast_expansion_sum_zeroelim(&abdet[..ablen], &cddet[..cdlen], &mut fin1);
 
-    let det = estimate(&fin1[..finlength]);
+    let mut det = estimate(&fin1[..finlength]);
     let mut errbound = ISPERRBOUND_B * permanent;
     if det >= errbound || -det >= errbound {
         return det;
@@ -1844,7 +1848,8 @@ fn insphereexact<T: Into<f64>>(
 
     temp8alen = scale_expansion_zeroelim(&ce[..4], pb.z, &mut temp8a);
     temp8blen = scale_expansion_zeroelim(&eb[..4], pc.z, &mut temp8b);
-    temp16len = fast_expansion_sum_zeroelim(temp8a[..temp8alen], &temp8b[..temp8blen], &mut temp16);
+    temp16len =
+        fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp8b[..temp8blen], &mut temp16);
     temp8alen = scale_expansion_zeroelim(&bc[..4], pe.z, &mut temp8a);
     let bcelen = fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp16[..temp16len], &mut bce);
 
@@ -1869,8 +1874,8 @@ fn insphereexact<T: Into<f64>>(
     let temp8alen = scale_expansion_zeroelim(&ea[..4], pc.z, &mut temp8a);
     let eaclen = fast_expansion_sum_zeroelim(&temp8a[..temp8alen], &temp16[..temp16len], &mut eac);
 
-    let temp48alen = fast_expansion_sum_zeroelim(&cde[..cdelen], &bce[..bcelen], &mut temp48a);
-    let temp48blen = fast_expansion_sum_zeroelim(&deb[..deblen], &bcd[..bcdlen], &mut temp48b);
+    let mut temp48alen = fast_expansion_sum_zeroelim(&cde[..cdelen], &bce[..bcelen], &mut temp48a);
+    let mut temp48blen = fast_expansion_sum_zeroelim(&deb[..deblen], &bcd[..bcdlen], &mut temp48b);
     for i in 0..temp48blen {
         temp48b[i] = -temp48b[i];
     }
@@ -1947,8 +1952,8 @@ fn insphereexact<T: Into<f64>>(
     ylen = scale_expansion_zeroelim(&temp192[..ylen], pe.y, &mut det384y);
     zlen = scale_expansion_zeroelim(&abcd[..abcdlen], pe.z, &mut temp192);
     zlen = scale_expansion_zeroelim(&temp192[..zlen], pe.z, &mut det384z);
-    xylen = fast_expansion_sum_zeroelim(&det384x[..xlen], det384y[..ylen], &mut detxy);
-    let elen = fast_expansion_sum_zeroelim(&detxy[..xylen], det384z[..zlen], &mut edet);
+    xylen = fast_expansion_sum_zeroelim(&det384x[..xlen], &det384y[..ylen], &mut detxy);
+    let elen = fast_expansion_sum_zeroelim(&detxy[..xylen], &det384z[..zlen], &mut edet);
 
     let ablen = fast_expansion_sum_zeroelim(&adet[..alen], &bdet[..blen], &mut abdet);
     let cdlen = fast_expansion_sum_zeroelim(&cdet[..clen], &ddet[..dlen], &mut cddet);
