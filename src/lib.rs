@@ -2240,7 +2240,7 @@ fn abs(x: f64) -> f64 {
 
 #[cfg(test)]
 mod test {
-    use super::{incircle, orient2d, orient3d, Coord, Coord3D};
+    use super::{incircle, insphere, orient2d, orient3d, Coord, Coord3D};
 
     #[test]
     fn test_orient2d() {
@@ -2329,6 +2329,53 @@ mod test {
 
         assert!(incircle(from, p_left, to, p_query) > 0.0);
         assert!(incircle(from, to, p_right, p_query) > 0.0);
+    }
+
+    #[test]
+    fn test_insphere() {
+        let pa = Coord3D {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        };
+        let pb = Coord3D {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        };
+        let pc = Coord3D {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        };
+        let pd = Coord3D {
+            x: 0.0,
+            y: -1.0,
+            z: 0.0,
+        };
+
+        // point outside sphere
+        let pe1 = Coord3D {
+            x: -1.01,
+            y: 0.,
+            z: 0.,
+        };
+        // point inside sphere
+        let pe2 = Coord3D {
+            x: 0.,
+            y: 0.,
+            z: 0.99,
+        };
+        // cospherical point
+        let pe3 = Coord3D {
+            x: 0.,
+            y: 0.,
+            z: -1.,
+        };
+
+        assert!(insphere(pa, pb, pc, pd, pe1) < 0.0);
+        assert!(insphere(pa, pb, pc, pd, pe2) > 0.0);
+        assert!(insphere(pa, pb, pc, pd, pe3) == 0.0);
     }
 
     #[test]
