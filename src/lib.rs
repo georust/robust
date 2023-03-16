@@ -10,13 +10,14 @@
 // except according to those terms.
 #![allow(non_snake_case)]
 
-//! This is a direct transcript of the sourcecode and algorithms provided by
+//! # Adaptive Precision Floating-Point Arithmetic and Fast Robust Predicates for Computational Geometry
+//! This is a direct transcript of the source code and algorithms provided by
 //! Jonathan Richard Shewchuk ([https://www.cs.cmu.edu/~quake/robust.html](https://www.cs.cmu.edu/~quake/robust.html))
 //! See the paper and the source code for more information.
 //!
 //! The module offers adaptive and precise calculations for orientation queries
-//! (on which side of a line does a point lie?) and in-circle queries
-//! (is a given point contained in the circumference of a triangle?)
+//! – "on which side of a line (2d) or plane (3d) does a point lie?" – and in-circle / in-sphere queries
+//! – "is a given point contained in the circumference of a triangle?".  
 //! The "adaptive" nature will increase performance only if a simpler calculation
 //! cannot be guaranteed to be accurate enough, yielding higher performance on
 //! average.
@@ -64,7 +65,7 @@ const ISPERRBOUND_B: f64 = (5.0 + 72.0 * EPSILON) * EPSILON;
 const ISPERRBOUND_C: f64 = (71.0 + 1408.0 * EPSILON) * EPSILON * EPSILON;
 
 /// Returns a positive value if the coordinates `pa`, `pb`, and `pc` occur in counterclockwise order
-/// (pc lies to the **left** of the directed line defined by coordinates pa and pb).  
+/// (`pc` lies to the **left** of the directed line defined by coordinates `pa` and `pb`).  
 /// Returns a negative value if they occur in clockwise order (`pc` lies to the **right** of the directed line `pa, pb`).  
 /// Returns `0` if they are **collinear**.  
 pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
@@ -168,8 +169,8 @@ fn orient2dadapt(pa: Coord<f64>, pb: Coord<f64>, pc: Coord<f64>, detsum: f64) ->
 }
 
 /// Returns a positive value if the point `pd` lies below the plane passing through `pa`, `pb`, and `pc`
-/// ("below" is defined so that pa, pb, and pc appear in counterclockwise order when viewed from above the plane).  
-/// Returns a negative value if `pd` lies above the plane
+/// ("below" is defined so that `pa`, `pb`, and `pc` appear in counterclockwise order when viewed from above the plane).  
+/// Returns a negative value if `pd` lies above the plane.  
 /// Returns `0` if they are **coplanar**.  
 pub fn orient3d<T: Into<f64>>(
     pa: Coord3D<T>,
@@ -1325,10 +1326,10 @@ fn incircleadapt(
     fin1[finlength - 1]
 }
 
-/// Return a positive value if the point pe lies inside the sphere passing through `pa`, `pb`, `pc`, and `pd`
-/// Returns a negative value if it lies outside
-/// Returns `0` if the five points are **cospherical**
-/// The points pa, pb, pc, and pd must be ordered so that they have a positive orientation
+/// Returns a positive value if the point `pe` lies inside the sphere passing through `pa`, `pb`, `pc`, and `pd`.  
+/// Returns a negative value if it lies outside.  
+/// Returns `0` if the five points are **cospherical**.  
+/// **NOTE**: The points `pa`, `pb`, `pc`, and `pd` must be ordered so that they have a positive orientation.
 pub fn insphere<T: Into<f64>>(
     pa: Coord3D<T>,
     pb: Coord3D<T>,
@@ -2240,7 +2241,236 @@ fn abs(x: f64) -> f64 {
 
 #[cfg(test)]
 mod test {
+
+    // Test fixtures are from the Staged Geometric Predicates (2001) paper by Aleksandar Nanevski et al
+    // Fixtures copied from https://github.com/mourner/robust-predicates/tree/main/test/fixtures
+    // Original location: https://www.cs.cmu.edu/afs/cs/project/pscico/pscico/src/arithmetic/compiler1/test/
+
     use super::{incircle, insphere, orient2d, orient3d, Coord, Coord3D};
+
+    #[cfg(not(feature = "no_std"))]
+    use std::fs::File;
+    #[cfg(not(feature = "no_std"))]
+    use std::io::{self, Read};
+
+    #[cfg(not(feature = "no_std"))]
+    fn filename_to_string(s: &str) -> io::Result<String> {
+        let mut file = File::open(s)?;
+        let mut s = String::new();
+        file.read_to_string(&mut s)?;
+        Ok(s)
+    }
+
+    #[cfg(not(feature = "no_std"))]
+    fn results_by_line(s: &str) -> Vec<Vec<f64>> {
+        s.lines()
+            .map(|line| {
+                line.split_whitespace()
+                    .skip(1)
+                    .map(|foo| foo.parse::<f64>().unwrap())
+                    .collect()
+            })
+            .collect()
+    }
+
+    #[cfg(not(feature = "no_std"))]
+    #[test]
+    fn test_orient2d_fixtures() {
+        let f = filename_to_string("fixtures/orient2d.txt").unwrap();
+        let fixtures = results_by_line(&f);
+        fixtures.iter().enumerate().for_each(|(idx, fixture)| {
+            let ax = fixture[0];
+            let ay = fixture[1];
+            let bx = fixture[2];
+            let by = fixture[3];
+            let cx = fixture[4];
+            let cy = fixture[5];
+            let sign = fixture[6];
+            let c1 = Coord { x: ax, y: ay };
+            let c2 = Coord { x: bx, y: by };
+            let c3 = Coord { x: cx, y: cy };
+            let res = orient2d(c1, c2, c3);
+            // result sign and fixture sign should be equal
+            assert!(
+                res.signum() == sign.signum(),
+                "Line {line}: Result sign ({result}) and fixture sign ({sign}) should match
+                \nCoord 1: {c1:?}\nCoord 2: {c2:?}\nCoord 3: {c3:?}",
+                line = idx + 1,
+                result = res,
+                sign = sign,
+                c1 = c1,
+                c2 = c2,
+                c3 = c3
+            );
+        })
+    }
+
+    #[cfg(not(feature = "no_std"))]
+    #[test]
+    fn test_incircle_fixtures() {
+        let f = filename_to_string("fixtures/incircle.txt").unwrap();
+        let fixtures = results_by_line(&f);
+        fixtures.iter().enumerate().for_each(|(idx, fixture)| {
+            let ax = fixture[0];
+            let ay = fixture[1];
+            let bx = fixture[2];
+            let by = fixture[3];
+            let cx = fixture[4];
+            let cy = fixture[5];
+            let dx = fixture[6];
+            let dy = fixture[7];
+            let sign = fixture[8];
+            let c1 = Coord { x: ax, y: ay };
+            let c2 = Coord { x: bx, y: by };
+            let c3 = Coord { x: cx, y: cy };
+            let c4 = Coord { x: dx, y: dy };
+            let res = incircle(c1, c2, c3, c4);
+            assert!(
+                res.signum() == sign.signum(),
+                "Line {line}: Result sign ({result}) and fixture sign ({sign}) should match
+                \nCoord 1: {c1:?}\nCoord 2: {c2:?}\nCoord 3: {c3:?}\nCoord 4: {c4:?}",
+                line = idx + 1,
+                result = res,
+                sign = sign,
+                c1 = c1,
+                c2 = c2,
+                c3 = c3,
+                c4 = c4
+            );
+        })
+    }
+
+    #[cfg(not(feature = "no_std"))]
+    #[test]
+    fn test_orient3d_fixtures() {
+        let f = filename_to_string("fixtures/orient3d.txt").unwrap();
+        let fixtures = results_by_line(&f);
+        fixtures.iter().enumerate().for_each(|(idx, fixture)| {
+            let ax = fixture[0];
+            let ay = fixture[1];
+            let az = fixture[2];
+
+            let bx = fixture[3];
+            let by = fixture[4];
+            let bz = fixture[5];
+
+            let cx = fixture[6];
+            let cy = fixture[7];
+            let cz = fixture[8];
+
+            let dx = fixture[9];
+            let dy = fixture[10];
+            let dz = fixture[11];
+
+            let sign = fixture[12];
+
+            let c1 = Coord3D {
+                x: ax,
+                y: ay,
+                z: az,
+            };
+            let c2 = Coord3D {
+                x: bx,
+                y: by,
+                z: bz,
+            };
+            let c3 = Coord3D {
+                x: cx,
+                y: cy,
+                z: cz,
+            };
+            let c4 = Coord3D {
+                x: dx,
+                y: dy,
+                z: dz,
+            };
+            let res = orient3d(c1, c2, c3, c4);
+            assert!(
+                res.signum() == sign.signum(),
+                "Line {line}: Result sign ({result}) and fixture sign ({sign}) should match
+                \nCoord 1: {c1:?}\nCoord 2: {c2:?}\nCoord 3: {c3:?}\nCoord 4: {c4:?}",
+                line = idx + 1,
+                result = res,
+                sign = sign,
+                c1 = c1,
+                c2 = c2,
+                c3 = c3,
+                c4 = c4
+            );
+            // symmetry
+            assert!(res.signum() == orient3d(c1, c2, c3, c4).signum());
+        })
+    }
+
+    #[cfg(not(feature = "no_std"))]
+    #[test]
+    fn test_insphere_fixtures() {
+        let f = filename_to_string("fixtures/insphere.txt").unwrap();
+        let fixtures = results_by_line(&f);
+        fixtures.iter().enumerate().for_each(|(idx, fixture)| {
+            let ax = fixture[0];
+            let ay = fixture[1];
+            let az = fixture[2];
+
+            let bx = fixture[3];
+            let by = fixture[4];
+            let bz = fixture[5];
+
+            let cx = fixture[6];
+            let cy = fixture[7];
+            let cz = fixture[8];
+
+            let dx = fixture[9];
+            let dy = fixture[10];
+            let dz = fixture[11];
+
+            let ex = fixture[12];
+            let ey = fixture[13];
+            let ez = fixture[14];
+
+            let sign = fixture[15];
+
+            let c1 = Coord3D {
+                x: ax,
+                y: ay,
+                z: az,
+            };
+            let c2 = Coord3D {
+                x: bx,
+                y: by,
+                z: bz,
+            };
+            let c3 = Coord3D {
+                x: cx,
+                y: cy,
+                z: cz,
+            };
+            let c4 = Coord3D {
+                x: dx,
+                y: dy,
+                z: dz,
+            };
+            let c5 = Coord3D {
+                x: ex,
+                y: ey,
+                z: ez,
+            };
+            let res = insphere(c1, c2, c3, c4, c5);
+            assert!(
+                res.signum() == sign.signum(),
+                "Line {line}: Result sign ({result}) and fixture sign ({sign}) should match
+                \nCoord 1: {c1:?}\nCoord 2: {c2:?}\nCoord 3: {c3:?}\nCoord 4: {c4:?}\nCoord 5: {c5:?}",
+                line = idx + 1,
+                result = res,
+                sign = sign,
+                c1 = c1,
+                c2 = c2,
+                c3 = c3,
+                c4 = c4,
+                c5 = c5
+            );
+        })
+    }
 
     #[test]
     fn test_orient2d() {
