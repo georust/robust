@@ -1,6 +1,6 @@
 [package]
 name = "robust"
-version = "0.2.3"
+version = "1.0.0"
 description = "Robust adaptive floating-point predicates for computational geometry"
 authors = [
     "The Spade Developers",
@@ -11,8 +11,8 @@ repository = "https://github.com/georust/robust"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-keywords = ["robustness", "stability"]
-categories = ["algorithms", "graphics", "science"]
+keywords = ["geometry", "robustness", "stability"]
+categories = ["algorithms", "graphics", "science::geo"]
 
 [dependencies]
 ieee754 = { version = "0.2", optional = true } # https://github.com/rust-lang/rust/issues/50145
