@@ -1,4 +1,3 @@
-#![cfg_attr(feature = "no_std", no_std)]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/georust/meta/master/logo/logo.png")]
 // Copyright 2017 The Spade Developers.
 // Copyright 2020 The GeoRust Project Developers.
@@ -26,10 +25,6 @@
 //! `f64` values for internal use.
 //! This has no effect on precision, as the [IEEE-754 standard](https://drive.google.com/file/d/0B3O3Ys97VjtxYXBCY08wanNoZ1U/view) (section 5.3)
 //! guarantees that conversion from `f32` to `f64` must be exact.
-//!
-//! # Features
-//!
-//! - `no_std`: Build without the Rust standard library
 
 /// A two dimensional coordinate.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -46,9 +41,6 @@ pub struct Coord3D<T: Into<f64>> {
     pub z: T,
 }
 
-// These values are precomputed from the "exactinit" method of the c-source code. They should? be
-// the same in all IEEE-754 environments, including rust f64
-const SPLITTER: f64 = 134_217_729f64;
 const EPSILON: f64 = ::core::f64::EPSILON / 2.0;
 const RESULTERRBOUND: f64 = (3.0 + 8.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_A: f64 = (3.0 + 16.0 * EPSILON) * EPSILON;
@@ -1965,8 +1957,7 @@ fn insphereexact<T: Into<f64>>(
 }
 
 fn scale_expansion_zeroelim(e: &[f64], b: f64, h: &mut [f64]) -> usize {
-    let (bhi, blo) = split(b);
-    let (mut Q, hh) = two_product_presplit(e[0], b, bhi, blo);
+    let (mut Q, hh) = two_product(e[0], b);
     let mut hindex = 0;
     if hh != 0.0 {
         h[hindex] = hh;
@@ -1974,7 +1965,7 @@ fn scale_expansion_zeroelim(e: &[f64], b: f64, h: &mut [f64]) -> usize {
     }
     for eindex in 1..e.len() {
         let enow = e[eindex];
-        let (product1, product0) = two_product_presplit(enow, b, bhi, blo);
+        let (product1, product0) = two_product(enow, b);
         let (sum, hh) = two_sum(Q, product0);
         if hh != 0.0 {
             h[hindex] = hh;
@@ -2002,32 +1993,7 @@ fn two_product(a: f64, b: f64) -> (f64, f64) {
 
 #[inline]
 fn two_product_tail(a: f64, b: f64, x: f64) -> f64 {
-    let (ahi, alo) = split(a);
-    let (bhi, blo) = split(b);
-    let err1 = x - (ahi * bhi);
-    let err2 = err1 - (alo * bhi);
-    let err3 = err2 - (ahi * blo);
-    (alo * blo) - err3
-}
-
-#[inline]
-fn split(a: f64) -> (f64, f64) {
-    let c = SPLITTER * a;
-    let abig = c - a;
-    let ahi = c - abig;
-    let alo = a - ahi;
-    (ahi, alo)
-}
-
-#[inline]
-fn two_product_presplit(a: f64, b: f64, bhi: f64, blo: f64) -> (f64, f64) {
-    let x = a * b;
-    let (ahi, alo) = split(a);
-    let err1 = x - ahi * bhi;
-    let err2 = err1 - alo * bhi;
-    let err3 = err2 - ahi * blo;
-    let y = alo * blo - err3;
-    (x, y)
+    a.mul_add(b, -x)
 }
 
 #[inline]
@@ -2188,10 +2154,7 @@ fn fast_two_sum(a: f64, b: f64) -> (f64, f64) {
 
 #[inline]
 fn square_tail(a: f64, x: f64) -> f64 {
-    let (ahi, alo) = split(a);
-    let err1 = x - ahi * ahi;
-    let err3 = err1 - (ahi + ahi) * alo;
-    alo * alo - err3
+    a.mul_add(a, -x)
 }
 
 #[inline]
@@ -2216,9 +2179,8 @@ fn two_two_sum(a1: f64, a0: f64, b1: f64, b0: f64) -> (f64, f64, f64, f64) {
 
 #[inline]
 fn two_one_product(a1: f64, a0: f64, b: f64) -> (f64, f64, f64, f64) {
-    let (bhi, blo) = split(b);
-    let (mut _i, x0) = two_product_presplit(a0, b, bhi, blo);
-    let (mut _j, _0) = two_product_presplit(a1, b, bhi, blo);
+    let (mut _i, x0) = two_product(a0, b);
+    let (mut _j, _0) = two_product(a1, b);
     let (_k, x1) = two_sum(_i, _0);
     let (x3, x2) = fast_two_sum(_j, _k);
     (x3, x2, x1, x0)
