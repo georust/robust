@@ -49,7 +49,7 @@ pub struct Coord3D<T: Into<f64>> {
 // These values are precomputed from the "exactinit" method of the c-source code. They should? be
 // the same in all IEEE-754 environments, including rust f64
 const SPLITTER: f64 = 134_217_729f64;
-const EPSILON: f64 = 0.000_000_000_000_000_111_022_302_462_515_65;
+const EPSILON: f64 = ::core::f64::EPSILON / 2.0;
 const RESULTERRBOUND: f64 = (3.0 + 8.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_A: f64 = (3.0 + 16.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_B: f64 = (2.0 + 12.0 * EPSILON) * EPSILON;
