@@ -86,21 +86,10 @@ pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
     let detright = (pa.y - pc.y) * (pb.x - pc.x);
     let det = detleft - detright;
 
-    let detsum = if detleft > 0.0 {
-        if detright <= 0.0 {
-            return det;
-        } else {
-            detleft + detright
-        }
-    } else if detleft < 0.0 {
-        if detright >= 0.0 {
-            return det;
-        } else {
-            -detleft - detright
-        }
-    } else {
-        return det;
-    };
+    // The detsum calculation was changed to require only one branch on the likely execution path.
+    // This improves performance on modern processors as discussed by Ozaki et al in
+    // https://doi.org/10.1007/s10543-015-0574-9
+    let detsum = abs(detleft) + abs(detright);
     let errbound = CCWERRBOUND_A * detsum;
     if det >= errbound || -det >= errbound {
         det
