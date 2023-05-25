@@ -51,7 +51,6 @@ pub struct Coord3D<T: Into<f64>> {
 const SPLITTER: f64 = 134_217_729f64;
 const EPSILON: f64 = 0.000_000_000_000_000_111_022_302_462_515_65;
 const RESULTERRBOUND: f64 = (3.0 + 8.0 * EPSILON) * EPSILON;
-const CCWERRBOUND_A: f64 = (3.0 + 16.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_B: f64 = (2.0 + 12.0 * EPSILON) * EPSILON;
 const CCWERRBOUND_C: f64 = (9.0 + 64.0 * EPSILON) * EPSILON * EPSILON;
 const O3DERRBOUND_A: f64 = (7.0 + 56.0 * EPSILON) * EPSILON;
@@ -86,22 +85,14 @@ pub fn orient2d<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>) -> f64 {
     let detright = (pa.y - pc.y) * (pb.x - pc.x);
     let det = detleft - detright;
 
-    let detsum = if detleft > 0.0 {
-        if detright <= 0.0 {
-            return det;
-        } else {
-            detleft + detright
-        }
-    } else if detleft < 0.0 {
-        if detright >= 0.0 {
-            return det;
-        } else {
-            -detleft - detright
-        }
-    } else {
-        return det;
-    };
-    let errbound = CCWERRBOUND_A * detsum;
+    // The errbound calculation was changed to require only one branch on the likely execution path.
+    // This improves performance on modern processors as discussed by Ozaki et al in
+    // https://doi.org/10.1007/s10543-015-0574-9
+    // The underflow guard "+ u_N" was omitted because orient2dadapt(...) would not guarantee
+    // correct results in cases of underflow, the derivation of THETA is given in the reference.
+    let detsum = abs(detleft + detright);
+    const THETA: f64 = 3.3306690621773722e-16;
+    let errbound = THETA * detsum;
     if det >= errbound || -det >= errbound {
         det
     } else {
