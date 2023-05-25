@@ -566,9 +566,10 @@ fn orient3dadapt(
     finnow[finlength - 1]
 }
 
-/// Returns a positive value if the coordinate `pd` lies **outside** the circle passing through `pa`, `pb`, and `pc`.  
-/// Returns a negative value if it lies **inside** the circle.  
-/// Returns `0` if the four points are **cocircular**.
+/// Returns a positive value if the coordinate `pd` lies **inside** the circle passing through `pa`, `pb`, and `pc`.  
+/// Returns a negative value if it lies **outside** the circle.  
+/// Returns `0` if the four points are **cocircular**.  
+/// **Note**: The points `pa`, `pb`, and `pc` must be in **counterclockwise order**, or the sign of the result will be reversed.
 pub fn incircle<T: Into<f64>>(pa: Coord<T>, pb: Coord<T>, pc: Coord<T>, pd: Coord<T>) -> f64 {
     let pa = Coord {
         x: pa.x.into(),
