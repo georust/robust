@@ -14,11 +14,8 @@ readme = "README.md"
 keywords = ["geometry", "robustness", "stability"]
 categories = ["algorithms", "graphics", "science::geo"]
 
-[dependencies]
-ieee754 = { version = "0.2", optional = true } # https://github.com/rust-lang/rust/issues/50145
-
 [features]
-no_std = ["ieee754"]
+no_std = []
 
 [dev-dependencies]
 png = "0.16.7"

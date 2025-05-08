@@ -2216,17 +2216,7 @@ fn two_one_product(a1: f64, a0: f64, b: f64) -> (f64, f64, f64, f64) {
     (x3, x2, x1, x0)
 }
 
-// f64::abs is not yet available in libcore, so we’ll need to use a separate
-// crate for this functionality.
-//
-// https://github.com/rust-lang/rust/issues/50145
-#[cfg(feature = "no_std")]
-#[inline]
-fn abs(x: f64) -> f64 {
-    ieee754::Ieee754::abs(x)
-}
-#[cfg(not(feature = "no_std"))]
-#[inline]
+#[inline(always)]
 fn abs(x: f64) -> f64 {
     x.abs()
 }
