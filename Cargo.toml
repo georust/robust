@@ -18,5 +18,5 @@ categories = ["algorithms", "graphics", "science::geo"]
 no_std = []
 
 [dev-dependencies]
-png = "0.16.7"
+png = "0.16.8"
 float_extras = "0.1.6"
