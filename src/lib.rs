@@ -9,7 +9,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #![allow(non_snake_case)]
-#![forbid(unsafe_code)]
 
 //! # Adaptive Precision Floating-Point Arithmetic and Fast Robust Predicates for Computational Geometry
 //! This is a direct transcript of the source code and algorithms provided by
